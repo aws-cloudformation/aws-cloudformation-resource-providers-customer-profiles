@@ -21,4 +21,3 @@ Resources:
       Handler: software.amazon.customerprofiles.domain.HandlerWrapper::testEntrypoint
       Runtime: java8
       CodeUri: ./target/aws-customerprofiles-domain-handler-1.0-SNAPSHOT.jar
-
