@@ -1,0 +1,17 @@
+{
+    "typeName": "AWS::CustomerProfiles::ObjectType",
+    "language": "java",
+    "runtime": "java8",
+    "entrypoint": "software.amazon.customerprofiles.objecttype.HandlerWrapper::handleRequest",
+    "testEntrypoint": "software.amazon.customerprofiles.objecttype.HandlerWrapper::testEntrypoint",
+    "settings": {
+        "namespace": [
+            "software",
+            "amazon",
+            "customerprofiles",
+            "objecttype"
+        ],
+        "protocolVersion": "2.0.0"
+    },
+    "executableEntrypoint": "software.amazon.customerprofiles.objecttype.HandlerWrapperExecutable"
+}
