@@ -206,6 +206,39 @@ public class UpdateHandlerTest {
     }
 
     @Test
+    public void handleRequest_previousTagIsEmpty() {
+        final UpdateHandler handler = new UpdateHandler(customerProfilesClient);
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(model)
+                .previousResourceTags(ImmutableMap.of())
+                .build();
+
+        final UpdateDomainResponse updateDomainResponse = UpdateDomainResponse.builder()
+                .createdAt(TIME)
+                .deadLetterQueueUrl(QUEUE_URL)
+                .defaultEncryptionKey(KEY_ARN)
+                .defaultExpirationDays(EXPIRATION_DAYS)
+                .lastUpdatedAt(TIME)
+                .build();
+
+        Mockito.when(proxy.injectCredentialsAndInvokeV2(any(), any()))
+                .thenReturn(updateDomainResponse);
+
+        final ProgressEvent<ResourceModel, CallbackContext> response
+                = handler.handleRequest(proxy, request, null, logger);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+        assertThat(response.getCallbackContext()).isNull();
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
+        assertThat(response.getResourceModel().getTags()).isNull();
+        assertThat(response.getResourceModels()).isNull();
+        assertThat(response.getMessage()).isNull();
+        assertThat(response.getErrorCode()).isNull();
+    }
+
+    @Test
     public void handleRequest_getDomain_BadRequestException() {
         final UpdateHandler handler = new UpdateHandler(customerProfilesClient);
 

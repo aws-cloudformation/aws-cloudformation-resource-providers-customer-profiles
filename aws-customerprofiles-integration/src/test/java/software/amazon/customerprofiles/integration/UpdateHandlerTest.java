@@ -139,6 +139,42 @@ public class UpdateHandlerTest {
     }
 
     @Test
+    public void handleRequest_previousTagIsEmpty() {
+        final UpdateHandler handler = new UpdateHandler(customerProfilesClient);
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(model)
+                .desiredResourceTags(DESIRED_TAGS)
+                .previousResourceTags(ImmutableMap.of())
+                .build();
+
+        PutIntegrationResponse putIntegrationResponse = PutIntegrationResponse.builder()
+                .createdAt(TIME)
+                .domainName(DOMAIN_NAME)
+                .lastUpdatedAt(TIME)
+                .objectTypeName(OBJECT_TYPE_NAME)
+                .tags(DESIRED_TAGS)
+                .uri(URI)
+                .build();
+
+        Mockito.when(proxy.injectCredentialsAndInvokeV2(any(), any()))
+                .thenReturn(putIntegrationResponse);
+
+        final ProgressEvent<ResourceModel, CallbackContext> response
+                = handler.handleRequest(proxy, request, null, logger);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+        assertThat(response.getCallbackContext()).isNull();
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
+        assertThat(response.getResourceModel().getTags().get(0).getValue()).isEqualTo(
+                DESIRED_TAGS.get(response.getResourceModel().getTags().get(0).getKey()));
+        assertThat(response.getResourceModels()).isNull();
+        assertThat(response.getMessage()).isNull();
+        assertThat(response.getErrorCode()).isNull();
+    }
+
+    @Test
     public void handleRequest_desiredResourceTagIsNull() {
         final UpdateHandler handler = new UpdateHandler(customerProfilesClient);
 

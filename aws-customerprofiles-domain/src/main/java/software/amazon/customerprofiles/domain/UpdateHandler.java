@@ -67,17 +67,19 @@ public class UpdateHandler extends BaseHandler<CallbackContext> {
         final List<Tag> previousTags = request.getPreviousResourceTags() == null ? Lists.newArrayList() :
                 Translator.mapTagsToList(request.getPreviousResourceTags());
 
-        final List<String> tagsToRemove = previousTags.stream()
-                .map(Tag::getKey)
-                .collect(Collectors.toList());
+        if (previousTags != null) {
+            final List<String> tagsToRemove = previousTags.stream()
+                    .map(Tag::getKey)
+                    .collect(Collectors.toList());
 
-        // Remove previous tags
-        if (tagsToRemove.size() > 0) {
-            final UntagResourceRequest untagResourceRequest = UntagResourceRequest.builder()
-                    .resourceArn(Translator.toDomainARN(request))
-                    .tagKeys(tagsToRemove)
-                    .build();
-            proxy.injectCredentialsAndInvokeV2(untagResourceRequest, client::untagResource);
+            // Remove previous tags
+            if (tagsToRemove.size() > 0) {
+                final UntagResourceRequest untagResourceRequest = UntagResourceRequest.builder()
+                        .resourceArn(Translator.toDomainARN(request))
+                        .tagKeys(tagsToRemove)
+                        .build();
+                proxy.injectCredentialsAndInvokeV2(untagResourceRequest, client::untagResource);
+            }
         }
 
         final Map<String, String> resourceTag;
