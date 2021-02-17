@@ -69,6 +69,7 @@
   "handlers": {
     "create": {
       "permissions": [
+        "profile:GetIntegration",
         "profile:PutIntegration"
       ]
     },

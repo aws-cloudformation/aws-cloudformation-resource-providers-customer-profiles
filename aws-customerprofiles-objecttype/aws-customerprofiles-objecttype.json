@@ -208,6 +208,7 @@
   "handlers": {
     "create": {
       "permissions": [
+        "profile:GetProfileObjectType",
         "profile:PutProfileObjectType"
       ]
     },
