@@ -195,7 +195,8 @@
     "DomainName"
   ],
   "createOnlyProperties": [
-    "/properties/DomainName"
+    "/properties/DomainName",
+    "/properties/ObjectTypeName"
   ],
   "readOnlyProperties": [
     "/properties/LastUpdatedAt",
