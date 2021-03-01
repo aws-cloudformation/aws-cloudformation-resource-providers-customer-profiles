@@ -103,7 +103,8 @@
     "/properties/Uri"
   ],
   "createOnlyProperties": [
-    "/properties/DomainName"
+    "/properties/DomainName",
+    "/properties/Uri"
   ],
   "readOnlyProperties": [
     "/properties/LastUpdatedAt",
