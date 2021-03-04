@@ -33,33 +33,36 @@
           "maxLength": 64
         },
         "ObjectTypeField": {
-          "description": "Represents a field in a ProfileObjectType.",
-          "type": "object",
-          "properties": {
-            "Source": {
-              "description": "A field of a ProfileObject. For example: _source.FirstName, where \u201c_source\u201d is a ProfileObjectType of a Zendesk user and \u201cFirstName\u201d is a field in that ObjectType.",
-              "type": "string",
-              "minLength": 1,
-              "maxLength": 1000
-            },
-            "Target": {
-              "description": "The location of the data in the standard ProfileObject model. For example: _profile.Address.PostalCode.",
-              "type": "string",
-              "minLength": 1,
-              "maxLength": 1000
-            },
-            "ContentType": {
-              "description": "The content type of the field. Used for determining equality when searching.",
-              "type": "string",
-              "enum": [
-                "STRING",
-                "NUMBER",
-                "PHONE_NUMBER",
-                "EMAIL_ADDRESS",
-                "NAME"
-              ]
-            }
-          }
+          "$ref": "#/definitions/ObjectTypeField"
+        }
+      }
+    },
+    "ObjectTypeField": {
+      "description": "Represents a field in a ProfileObjectType.",
+      "type": "object",
+      "properties": {
+        "Source": {
+          "description": "A field of a ProfileObject. For example: _source.FirstName, where \"_source\" is a ProfileObjectType of a Zendesk user and \"FirstName\" is a field in that ObjectType.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        },
+        "Target": {
+          "description": "The location of the data in the standard ProfileObject model. For example: _profile.Address.PostalCode.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        },
+        "ContentType": {
+          "description": "The content type of the field. Used for determining equality when searching.",
+          "type": "string",
+          "enum": [
+            "STRING",
+            "NUMBER",
+            "PHONE_NUMBER",
+            "EMAIL_ADDRESS",
+            "NAME"
+          ]
         }
       }
     },
