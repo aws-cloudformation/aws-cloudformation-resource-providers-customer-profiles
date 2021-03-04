@@ -83,8 +83,6 @@ public class UpdateHandler extends BaseHandler<CallbackContext> {
             }
         }
 
-        // This is a weird place caused between Contract Test and SAM Test
-        // The Tag is getting from DesiredResourceTags, the Contract Test will set it as Empty Map, SAM Test will not
         final Map<String, String> resourceTag;
         if (request.getDesiredResourceTags() == null) {
             resourceTag = null;
