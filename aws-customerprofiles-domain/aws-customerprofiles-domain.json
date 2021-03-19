@@ -18,6 +18,7 @@
           "maxLength": 256
         }
       },
+      "additionalProperties": false,
       "required": [
         "Key",
         "Value"

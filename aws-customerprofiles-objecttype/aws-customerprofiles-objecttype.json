@@ -18,6 +18,7 @@
           "maxLength": 256
         }
       },
+      "additionalProperties": false,
       "required": [
         "Key",
         "Value"
@@ -35,7 +36,8 @@
         "ObjectTypeField": {
           "$ref": "#/definitions/ObjectTypeField"
         }
-      }
+      },
+      "additionalProperties": false
     },
     "ObjectTypeField": {
       "description": "Represents a field in a ProfileObjectType.",
@@ -64,7 +66,8 @@
             "NAME"
           ]
         }
-      }
+      },
+      "additionalProperties": false
     },
     "KeyMap": {
       "type": "object",
@@ -82,7 +85,8 @@
             "$ref": "#/definitions/ObjectTypeKey"
           }
         }
-      }
+      },
+      "additionalProperties": false
     },
     "ObjectTypeKey": {
       "description": "An object that defines the Key element of a ProfileObject. A Key is a special element that can be used to search for a customer profile.",
@@ -112,7 +116,8 @@
             ]
           }
         }
-      }
+      },
+      "additionalProperties": false
     }
   },
   "properties": {
