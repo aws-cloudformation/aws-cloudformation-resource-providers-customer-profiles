@@ -529,7 +529,7 @@
       },
       "required": [
         "FlowName",
-        "KMSArn",
+        "KmsArn",
         "Tasks",
         "TriggerConfig",
         "SourceFlowConfig"
