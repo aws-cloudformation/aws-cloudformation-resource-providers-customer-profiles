@@ -1,11 +1,7 @@
-## My Project
+## aws-cloudformation-resource-providers-customer-profiles
 
-TODO: Fill this README out!
+The CloudFormation Resource Provider Package For AWS Connect Customer Profiles
 
-Be sure to:
-
-* Change the title in this README
-* Edit your repository description on GitHub
 
 ## Security
 
