@@ -3,9 +3,10 @@ package software.amazon.customerprofiles.integration.translators;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.services.customerprofiles.model.ConnectorOperator;
 import software.amazon.awssdk.services.customerprofiles.model.SourceFlowConfig;
-import software.amazon.customerprofiles.integration.IncrementalPullConfig;
+import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static software.amazon.customerprofiles.integration.translators.TestUtils.getValidSourceConnectorProperties;
 
 public class S3TranslatorTest {
@@ -39,6 +40,15 @@ public class S3TranslatorTest {
         assertNotNull(translated);
         assertNull(translated.connectorProfileName());
         assertNull(translated.incrementalPullConfig());
+    }
+
+    @Test
+    public void testSourcePropertiesInvalid() {
+        software.amazon.customerprofiles.integration.SourceFlowConfig model = software.amazon.customerprofiles.integration.SourceFlowConfig.builder()
+                .connectorType("S3")
+                .sourceConnectorProperties(getValidSourceConnectorProperties("Salesforce"))
+                .build();
+        assertThrows(CfnInvalidRequestException.class, () -> translator.toServiceSourceFlowConfig(model));
     }
 
     @Test

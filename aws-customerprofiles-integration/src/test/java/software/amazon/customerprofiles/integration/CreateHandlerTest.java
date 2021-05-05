@@ -361,4 +361,55 @@ public class CreateHandlerTest {
 
         assertThrows(CfnAlreadyExistsException.class, () -> handler.handleRequest(proxy, request, null, logger));
     }
+
+    // test for if a flow with the desired flow name already exists (originates as an AppFlow 409 -> Locke 400)
+    @Test
+    public void handleRequest_withFlowDefinition_FlowAlreadyExists() {
+
+        model = ResourceModel.builder()
+                .domainName("testDomainName")
+                .flowDefinition(getValidFlowDefinition("Salesforce"))
+                .objectTypeName("testObjectTypeName")
+                .build();
+
+        final CreateHandler handler = new CreateHandler(customerProfilesClient);
+
+        String flowAlreadyExistsMessage = "Caused by: software.amazon.awssdk.services.customerprofiles.model.BadRequestException: " +
+                "Conflict executing request: Flow with name " + getValidFlowDefinition("Salesforce").getFlowName()
+                + " already exists.";
+
+        BadRequestException e = BadRequestException.builder().message(flowAlreadyExistsMessage).build();
+
+        Mockito.doThrow(e).when(proxy).injectCredentialsAndInvokeV2(
+                any(PutIntegrationRequest.class), any());
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(model)
+                .build();
+
+        assertThrows(CfnAlreadyExistsException.class, () -> handler.handleRequest(proxy, request, null, logger));
+    }
+
+
+    @Test
+    public void handleRequest_withFlowDefinition_BadRequestException() {
+        model = ResourceModel.builder()
+                .domainName("testDomainName")
+                .flowDefinition(getValidFlowDefinition("Salesforce"))
+                .objectTypeName("testObjectTypeName")
+                .build();
+
+        final CreateHandler handler = new CreateHandler(customerProfilesClient);
+
+        BadRequestException e = BadRequestException.builder().build();
+
+        Mockito.doThrow(e).when(proxy).injectCredentialsAndInvokeV2(
+                any(PutIntegrationRequest.class), any());
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(model)
+                .build();
+
+        assertThrows(CfnInvalidRequestException.class, () -> handler.handleRequest(proxy, request, null, logger));
+    }
 }

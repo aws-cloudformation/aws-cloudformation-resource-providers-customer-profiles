@@ -626,5 +626,8 @@
   "readOnlyProperties": [
     "/properties/LastUpdatedAt",
     "/properties/CreatedAt"
+  ],
+  "writeOnlyProperties": [
+    "/properties/FlowDefinition"
   ]
 }

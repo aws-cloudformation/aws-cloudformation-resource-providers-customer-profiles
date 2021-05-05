@@ -29,6 +29,7 @@ import static software.amazon.customerprofiles.integration.Translator.buildServi
 @NoArgsConstructor
 public class CreateHandler extends BaseHandler<CallbackContext> {
     private static final int BAD_REQUEST_ERROR_CODE = 400;
+    private static final String FLOW_ALREADY_EXISTS_MESSAGE = "Flow with name %s already exists.";
 
     private CustomerProfilesClient client;
 
@@ -115,6 +116,14 @@ public class CreateHandler extends BaseHandler<CallbackContext> {
             putIntegrationResponse = proxy.injectCredentialsAndInvokeV2(putIntegrationRequest, client::putIntegration);
             logger.log(String.format("Integration Created with domainName = %s", model.getDomainName()));
         } catch (BadRequestException e) {
+            // throw CfnAlreadyExistsException if a flow with the desired flow name already exists
+            if (model.getFlowDefinition() != null && model.getFlowDefinition().getFlowName() != null) {
+                String flowName = model.getFlowDefinition().getFlowName();
+                if (e.getMessage() != null && e.getMessage().contains(String.format(FLOW_ALREADY_EXISTS_MESSAGE, flowName))) {
+                    throw new CfnAlreadyExistsException(e);
+                }
+            }
+
             throw new CfnInvalidRequestException(e);
         } catch (AccessDeniedException e) {
             throw new CfnAccessDeniedException(e);

@@ -2,11 +2,10 @@ package software.amazon.customerprofiles.integration.translators;
 
 import com.amazonaws.util.StringUtils;
 import software.amazon.awssdk.services.customerprofiles.model.ConnectorOperator;
-import software.amazon.awssdk.services.customerprofiles.model.IncrementalPullConfig;
 import software.amazon.awssdk.services.customerprofiles.model.S3SourceProperties;
 import software.amazon.awssdk.services.customerprofiles.model.SourceConnectorProperties;
 import software.amazon.awssdk.services.customerprofiles.model.SourceFlowConfig;
-import software.amazon.customerprofiles.integration.translators.ConnectorTranslator;
+import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
 
 public class S3Translator implements ConnectorTranslator {
 
@@ -27,6 +26,9 @@ public class S3Translator implements ConnectorTranslator {
     }
 
     private S3SourceProperties toServiceS3SourceProperties(software.amazon.customerprofiles.integration.S3SourceProperties model) {
+        if (model == null) {
+            throw new CfnInvalidRequestException("SourceConnectorType and SourceConnectorProperties must be same type.");
+        }
         return S3SourceProperties.builder()
                 .bucketPrefix(model.getBucketPrefix())
                 .bucketName(model.getBucketName())

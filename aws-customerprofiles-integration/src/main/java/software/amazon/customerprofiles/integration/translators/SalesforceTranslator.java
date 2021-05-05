@@ -6,7 +6,7 @@ import software.amazon.awssdk.services.customerprofiles.model.IncrementalPullCon
 import software.amazon.awssdk.services.customerprofiles.model.SalesforceSourceProperties;
 import software.amazon.awssdk.services.customerprofiles.model.SourceConnectorProperties;
 import software.amazon.awssdk.services.customerprofiles.model.SourceFlowConfig;
-import software.amazon.customerprofiles.integration.translators.ConnectorTranslator;
+import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
 
 public class SalesforceTranslator implements ConnectorTranslator {
 
@@ -30,6 +30,9 @@ public class SalesforceTranslator implements ConnectorTranslator {
     }
 
     private SalesforceSourceProperties toServiceSourceProperties(software.amazon.customerprofiles.integration.SalesforceSourceProperties model) {
+        if (model == null) {
+            throw new CfnInvalidRequestException("SourceConnectorType and SourceConnectorProperties must be same type.");
+        }
         return SalesforceSourceProperties.builder()
                 .enableDynamicFieldUpdate(model.getEnableDynamicFieldUpdate())
                 .includeDeletedRecords(model.getIncludeDeletedRecords())

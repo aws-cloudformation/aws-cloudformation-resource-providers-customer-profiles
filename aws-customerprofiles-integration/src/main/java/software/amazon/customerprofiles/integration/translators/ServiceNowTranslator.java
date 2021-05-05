@@ -2,11 +2,10 @@ package software.amazon.customerprofiles.integration.translators;
 
 import com.amazonaws.util.StringUtils;
 import software.amazon.awssdk.services.customerprofiles.model.ConnectorOperator;
-import software.amazon.awssdk.services.customerprofiles.model.IncrementalPullConfig;
 import software.amazon.awssdk.services.customerprofiles.model.ServiceNowSourceProperties;
 import software.amazon.awssdk.services.customerprofiles.model.SourceConnectorProperties;
 import software.amazon.awssdk.services.customerprofiles.model.SourceFlowConfig;
-import software.amazon.customerprofiles.integration.translators.ConnectorTranslator;
+import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
 
 public class ServiceNowTranslator implements ConnectorTranslator {
 
@@ -27,6 +26,9 @@ public class ServiceNowTranslator implements ConnectorTranslator {
     }
 
     private ServiceNowSourceProperties toServiceServiceNowSourceProperties(software.amazon.customerprofiles.integration.ServiceNowSourceProperties model) {
+        if (model == null) {
+            throw new CfnInvalidRequestException("SourceConnectorType and SourceConnectorProperties must be same type.");
+        }
         return ServiceNowSourceProperties.builder()
                 .object(model.getObject())
                 .build();
