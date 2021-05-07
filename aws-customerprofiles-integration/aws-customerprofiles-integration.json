@@ -1,6 +1,6 @@
 {
   "typeName": "AWS::CustomerProfiles::Integration",
-  "description": "An example resource schema demonstrating some basic constructs and validation rules.",
+  "description": "The resource schema for creating an Amazon Connect Customer Profiles Integration.",
   "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-customer-profiles.git",
   "definitions": {
     "Tag": {
@@ -587,7 +587,8 @@
     "create": {
       "permissions": [
         "profile:GetIntegration",
-        "profile:PutIntegration"
+        "profile:PutIntegration",
+        "appflow:CreateFlow"
       ]
     },
     "read": {
@@ -597,7 +598,8 @@
     },
     "delete": {
       "permissions": [
-        "profile:DeleteIntegration"
+        "profile:DeleteIntegration",
+        "appflow:DeleteFlow"
       ]
     },
     "update": {

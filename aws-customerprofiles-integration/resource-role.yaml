@@ -29,6 +29,8 @@ Resources:
                 - "profile:PutIntegration"
                 - "profile:TagResource"
                 - "profile:UntagResource"
+                - "appflow:CreateFlow"
+                - "appflow:DeleteFlow"
                 Resource: "*"
 Outputs:
   ExecutionRoleArn:
