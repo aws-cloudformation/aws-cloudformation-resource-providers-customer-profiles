@@ -1,5 +1,6 @@
 package software.amazon.customerprofiles.integration;
 
+import com.google.common.collect.ImmutableMap;
 import org.mockito.Mockito;
 import software.amazon.awssdk.services.customerprofiles.CustomerProfilesClient;
 import software.amazon.awssdk.services.customerprofiles.model.BadRequestException;
@@ -24,6 +25,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Instant;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -32,6 +34,7 @@ import static org.mockito.ArgumentMatchers.any;
 @ExtendWith(MockitoExtension.class)
 public class ReadHandlerTest {
     private static final Instant TIME = Instant.now();
+    private static final Map<String, String> OBJECT_TYPE_NAMES = ImmutableMap.of("TestEventType", "TestObjectType");
 
     private static ResourceModel model;
 
@@ -82,6 +85,44 @@ public class ReadHandlerTest {
         assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
         assertThat(response.getResourceModel().getDomainName()).isEqualTo(request.
                 getDesiredResourceState().getDomainName());
+        assertThat(response.getResourceModels()).isNull();
+        assertThat(response.getMessage()).isNull();
+        assertThat(response.getErrorCode()).isNull();
+    }
+
+    @Test
+    public void handleRequest_withObjectTypeNames_SimpleSuccess() {
+        model = ResourceModel.builder()
+                .domainName("testDomainName")
+                .uri("arn:aws:app-integrations:us-east-1:123456789012:event-integration/EventIntegration")
+                .build();
+
+        final ReadHandler handler = new ReadHandler(customerProfilesClient);
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(model)
+                .build();
+
+        final GetIntegrationResponse result = GetIntegrationResponse.builder()
+                .createdAt(TIME)
+                .domainName("testDomainName")
+                .lastUpdatedAt(TIME)
+                .uri("arn:aws:app-integrations:us-east-1:123456789012:event-integration/EventIntegration")
+                .objectTypeNames(OBJECT_TYPE_NAMES)
+                .build();
+
+        Mockito.when(proxy.injectCredentialsAndInvokeV2(any(), any()))
+                .thenReturn(result);
+
+        final ProgressEvent<ResourceModel, CallbackContext> response
+                = handler.handleRequest(proxy, request, null, logger);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+        assertThat(response.getCallbackContext()).isNull();
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
+        assertThat(response.getResourceModel().getDomainName()).isEqualTo(request.getDesiredResourceState().getDomainName());
+        assertThat(response.getResourceModel().getObjectTypeNames()).isEqualTo(Translator.mapObjectTypeNamesToList(OBJECT_TYPE_NAMES));
         assertThat(response.getResourceModels()).isNull();
         assertThat(response.getMessage()).isNull();
         assertThat(response.getErrorCode()).isNull();

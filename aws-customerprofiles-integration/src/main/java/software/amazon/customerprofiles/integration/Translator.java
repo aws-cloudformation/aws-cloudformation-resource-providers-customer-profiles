@@ -37,6 +37,24 @@ public class Translator {
                 .collect(Collectors.toList());
     }
 
+    static Map<String, String> mapListToObjectTypeNames(List<ObjectTypeMapping> list) {
+        if (list == null || list.size() == 0) {
+            return null;
+        }
+        return list.stream().collect(Collectors.toMap(ObjectTypeMapping::getKey, ObjectTypeMapping::getValue));
+    }
+
+    static List<ObjectTypeMapping> mapObjectTypeNamesToList(Map<String, String> objectTypeNames) {
+        if (objectTypeNames == null || objectTypeNames.isEmpty()) {
+            return null;
+        }
+        return objectTypeNames.entrySet().stream()
+                .map(t -> ObjectTypeMapping.builder()
+                        .key(t.getKey())
+                        .value(t.getValue()).build())
+                .collect(Collectors.toList());
+    }
+
     private static Map<String, ConnectorTranslator> connectorTranslators = ImmutableMap.<String, ConnectorTranslator>builder()
             .put("Salesforce", new SalesforceTranslator())
             .put("Marketo", new MarketoTranslator())

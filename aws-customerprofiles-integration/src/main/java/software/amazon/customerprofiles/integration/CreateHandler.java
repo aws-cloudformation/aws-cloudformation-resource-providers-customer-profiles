@@ -109,6 +109,7 @@ public class CreateHandler extends BaseHandler<CallbackContext> {
                 .tags(resourceTag)
                 .flowDefinition(buildServiceFlowDefinition(model.getFlowDefinition()))
                 .uri(model.getUri())
+                .objectTypeNames(Translator.mapListToObjectTypeNames(model.getObjectTypeNames()))
                 .build();
 
         final PutIntegrationResponse putIntegrationResponse;
@@ -144,6 +145,7 @@ public class CreateHandler extends BaseHandler<CallbackContext> {
                 .objectTypeName(putIntegrationResponse.objectTypeName())
                 .tags(Translator.mapTagsToList(putIntegrationResponse.tags()))
                 .uri(putIntegrationResponse.uri())
+                .objectTypeNames(Translator.mapObjectTypeNamesToList(putIntegrationResponse.objectTypeNames()))
                 .build();
 
         return ProgressEvent.defaultSuccessHandler(responseModel);

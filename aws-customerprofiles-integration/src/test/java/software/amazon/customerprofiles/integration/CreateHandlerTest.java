@@ -45,6 +45,7 @@ import static software.amazon.customerprofiles.integration.translators.TestUtils
 public class CreateHandlerTest {
     private static final Instant TIME = Instant.now();
     private static final Map<String, String> DESIRED_TAGS = ImmutableMap.of("Key2", "Value4", "Key3", "Value3");
+    private static final Map<String, String> OBJECT_TYPE_NAMES = ImmutableMap.of("TestEventType", "TestObjectType");
 
     private static ResourceModel model;
 
@@ -141,6 +142,44 @@ public class CreateHandlerTest {
         assertThat(response.getCallbackContext()).isNull();
         assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
         assertThat(response.getResourceModel().getDomainName()).isEqualTo(request.getDesiredResourceState().getDomainName());
+        assertThat(response.getResourceModels()).isNull();
+        assertThat(response.getMessage()).isNull();
+        assertThat(response.getErrorCode()).isNull();
+    }
+
+    @Test
+    public void handleRequest_withObjectTypeNames_Success() {
+        model = ResourceModel.builder()
+                .domainName("testDomainName")
+                .uri("arn:aws:app-integrations:us-east-1:123456789012:event-integration/EventIntegration")
+                .objectTypeNames(Translator.mapObjectTypeNamesToList(OBJECT_TYPE_NAMES))
+                .build();
+
+        final CreateHandler handler = new CreateHandler(customerProfilesClient);
+
+        PutIntegrationResponse result = PutIntegrationResponse.builder()
+                .createdAt(TIME)
+                .domainName("testDomainName")
+                .lastUpdatedAt(TIME)
+                .uri("arn:aws:app-integrations:us-east-1:123456789012:event-integration/EventIntegration")
+                .objectTypeNames(OBJECT_TYPE_NAMES)
+                .build();
+
+        Mockito.doReturn(result).when(proxy).injectCredentialsAndInvokeV2(
+                any(PutIntegrationRequest.class), any());
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(model)
+                .build();
+
+        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, null, logger);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+        assertThat(response.getCallbackContext()).isNull();
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
+        assertThat(response.getResourceModel().getDomainName()).isEqualTo(request.getDesiredResourceState().getDomainName());
+        assertThat(response.getResourceModel().getObjectTypeNames()).isEqualTo(request.getDesiredResourceState().getObjectTypeNames());
         assertThat(response.getResourceModels()).isNull();
         assertThat(response.getMessage()).isNull();
         assertThat(response.getErrorCode()).isNull();
