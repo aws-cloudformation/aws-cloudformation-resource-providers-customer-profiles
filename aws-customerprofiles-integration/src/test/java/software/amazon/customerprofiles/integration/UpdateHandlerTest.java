@@ -44,6 +44,7 @@ public class UpdateHandlerTest {
     private static final String URI = "arn:aws:flow:us-east-1:123456789012:URIOfIntegration1";
     private static final Map<String, String> PREVIOUS_TAGS = ImmutableMap.of("Key1", "Value1", "Key2", "Value2");
     private static final Map<String, String> DESIRED_TAGS = ImmutableMap.of("Key2", "Value4", "Key3", "Value3");
+    private static final Map<String, String> OBJECT_TYPE_NAMES = ImmutableMap.of("TestEventType", "TestObjectType");
 
     private static ResourceModel model;
 
@@ -98,6 +99,49 @@ public class UpdateHandlerTest {
         assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
         assertThat(response.getResourceModel().getTags().get(0).getValue()).isEqualTo(
                 DESIRED_TAGS.get(response.getResourceModel().getTags().get(0).getKey()));
+        assertThat(response.getResourceModels()).isNull();
+        assertThat(response.getMessage()).isNull();
+        assertThat(response.getErrorCode()).isNull();
+    }
+
+    @Test
+    public void handleRequest_withObjectTypeNames_SimpleSuccess() {
+        model = ResourceModel.builder()
+                .domainName(DOMAIN_NAME)
+                .uri("arn:aws:app-integrations:us-east-1:123456789012:event-integration/EventIntegration")
+                .objectTypeNames(Translator.mapObjectTypeNamesToList(OBJECT_TYPE_NAMES))
+                .build();
+
+        final UpdateHandler handler = new UpdateHandler(customerProfilesClient);
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(model)
+                .previousResourceTags(PREVIOUS_TAGS)
+                .desiredResourceTags(DESIRED_TAGS)
+                .build();
+
+        PutIntegrationResponse putIntegrationResponse = PutIntegrationResponse.builder()
+                .createdAt(TIME)
+                .domainName(DOMAIN_NAME)
+                .lastUpdatedAt(TIME)
+                .tags(DESIRED_TAGS)
+                .uri("arn:aws:app-integrations:us-east-1:123456789012:event-integration/EventIntegration")
+                .objectTypeNames(OBJECT_TYPE_NAMES)
+                .build();
+
+        Mockito.when(proxy.injectCredentialsAndInvokeV2(any(), any()))
+                .thenReturn(putIntegrationResponse);
+
+        final ProgressEvent<ResourceModel, CallbackContext> response
+                = handler.handleRequest(proxy, request, null, logger);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+        assertThat(response.getCallbackContext()).isNull();
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
+        assertThat(response.getResourceModel().getTags().get(0).getValue()).isEqualTo(
+                DESIRED_TAGS.get(response.getResourceModel().getTags().get(0).getKey()));
+        assertThat(response.getResourceModel().getObjectTypeNames()).isEqualTo(request.getDesiredResourceState().getObjectTypeNames());
         assertThat(response.getResourceModels()).isNull();
         assertThat(response.getMessage()).isNull();
         assertThat(response.getErrorCode()).isNull();

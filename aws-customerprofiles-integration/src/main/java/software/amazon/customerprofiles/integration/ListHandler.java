@@ -69,6 +69,7 @@ public class ListHandler extends BaseHandler<CallbackContext> {
                     .objectTypeName(res.objectTypeName())
                     .tags(Translator.mapTagsToList(res.tags()))
                     .uri(res.uri())
+                    .objectTypeNames(Translator.mapObjectTypeNamesToList(res.objectTypeNames()))
                     .build();
             responseModels.add(responseModel);
         });

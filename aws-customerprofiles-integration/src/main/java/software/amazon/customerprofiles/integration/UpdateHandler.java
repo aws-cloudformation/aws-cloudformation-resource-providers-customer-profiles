@@ -97,6 +97,7 @@ public class UpdateHandler extends BaseHandler<CallbackContext> {
                 .objectTypeName(requestModel.getObjectTypeName())
                 .uri(requestModel.getUri())
                 .tags(resourceTag)
+                .objectTypeNames(Translator.mapListToObjectTypeNames(requestModel.getObjectTypeNames()))
                 .build();
 
         final PutIntegrationResponse putIntegrationResponse;
@@ -121,6 +122,7 @@ public class UpdateHandler extends BaseHandler<CallbackContext> {
                 .objectTypeName(putIntegrationResponse.objectTypeName())
                 .tags(Translator.mapTagsToList(putIntegrationResponse.tags()))
                 .uri(putIntegrationResponse.uri())
+                .objectTypeNames(Translator.mapObjectTypeNamesToList(putIntegrationResponse.objectTypeNames()))
                 .build();
 
         return ProgressEvent.defaultSuccessHandler(responseModel);
