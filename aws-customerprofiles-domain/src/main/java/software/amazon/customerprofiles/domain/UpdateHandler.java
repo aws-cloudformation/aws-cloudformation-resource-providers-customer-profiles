@@ -7,6 +7,7 @@ import software.amazon.awssdk.services.customerprofiles.model.BadRequestExceptio
 import software.amazon.awssdk.services.customerprofiles.model.GetDomainRequest;
 import software.amazon.awssdk.services.customerprofiles.model.InternalServerException;
 import software.amazon.awssdk.services.customerprofiles.model.ResourceNotFoundException;
+import software.amazon.awssdk.services.customerprofiles.model.TagResourceRequest;
 import software.amazon.awssdk.services.customerprofiles.model.UntagResourceRequest;
 import software.amazon.awssdk.services.customerprofiles.model.UpdateDomainRequest;
 import software.amazon.awssdk.services.customerprofiles.model.UpdateDomainResponse;
@@ -82,20 +83,19 @@ public class UpdateHandler extends BaseHandler<CallbackContext> {
             }
         }
 
-        final Map<String, String> resourceTag;
-        if (request.getDesiredResourceTags() == null) {
-            resourceTag = null;
-        } else if (request.getDesiredResourceTags().isEmpty()) {
-            resourceTag = null;
-        } else {
-            resourceTag = request.getDesiredResourceTags();
+        if (request.getDesiredResourceTags() != null && !request.getDesiredResourceTags().isEmpty()) {
+            final Map<String, String> resourceTag = request.getDesiredResourceTags();
+            final TagResourceRequest tagResourceRequest = TagResourceRequest.builder()
+                    .resourceArn(Translator.toDomainARN(request))
+                    .tags(resourceTag)
+                    .build();
+            proxy.injectCredentialsAndInvokeV2(tagResourceRequest, client::tagResource);
         }
         final UpdateDomainRequest updateDomainRequest = UpdateDomainRequest.builder()
                 .domainName(model.getDomainName())
                 .deadLetterQueueUrl(model.getDeadLetterQueueUrl())
                 .defaultEncryptionKey(model.getDefaultEncryptionKey())
                 .defaultExpirationDays(model.getDefaultExpirationDays())
-                .tags(resourceTag)
                 .build();
 
         final UpdateDomainResponse updateDomainResponse;

@@ -3,7 +3,6 @@ package software.amazon.customerprofiles.objecttype;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
 import software.amazon.awssdk.services.customerprofiles.CustomerProfilesClient;
 import software.amazon.awssdk.services.customerprofiles.model.BadRequestException;
 import software.amazon.awssdk.services.customerprofiles.model.GetProfileObjectTypeRequest;
@@ -15,8 +14,11 @@ import software.amazon.awssdk.services.customerprofiles.model.PutProfileObjectTy
 import software.amazon.awssdk.services.customerprofiles.model.PutProfileObjectTypeResponse;
 import software.amazon.awssdk.services.customerprofiles.model.ResourceNotFoundException;
 import software.amazon.awssdk.services.customerprofiles.model.StandardIdentifier;
+import software.amazon.awssdk.services.customerprofiles.model.TagResourceRequest;
+import software.amazon.awssdk.services.customerprofiles.model.TagResourceResponse;
 import software.amazon.awssdk.services.customerprofiles.model.ThrottlingException;
 import software.amazon.awssdk.services.customerprofiles.model.UntagResourceRequest;
+import software.amazon.awssdk.services.customerprofiles.model.UntagResourceResponse;
 import software.amazon.cloudformation.exceptions.CfnGeneralServiceException;
 import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
 import software.amazon.cloudformation.exceptions.CfnNotFoundException;
@@ -34,7 +36,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Instant;
 import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -121,12 +122,16 @@ public class UpdateHandlerTest {
                 .templateId(TEMPLATE_ID)
                 .build();
 
-        Mockito.when(proxy.injectCredentialsAndInvokeV2(any(), any()))
-                .thenReturn(putProfileObjectTypeResponse);
+        Mockito.doReturn(GetProfileObjectTypeResponse.builder().build()).when(proxy).injectCredentialsAndInvokeV2(any(GetProfileObjectTypeRequest.class), any());
+        Mockito.doReturn(UntagResourceResponse.builder().build()).when(proxy).injectCredentialsAndInvokeV2(any(UntagResourceRequest.class), any());
+        Mockito.doReturn(TagResourceResponse.builder().build()).when(proxy).injectCredentialsAndInvokeV2(any(TagResourceRequest.class), any());
+        Mockito.doReturn(putProfileObjectTypeResponse).when(proxy).injectCredentialsAndInvokeV2(any(PutProfileObjectTypeRequest.class), any());
 
         final ProgressEvent<ResourceModel, CallbackContext> response
                 = handler.handleRequest(proxy, request, null, logger);
 
+        Mockito.verify(proxy).injectCredentialsAndInvokeV2(any(UntagResourceRequest.class), any());
+        Mockito.verify(proxy).injectCredentialsAndInvokeV2(any(TagResourceRequest.class), any());
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
         assertThat(response.getCallbackContext()).isNull();
@@ -161,12 +166,15 @@ public class UpdateHandlerTest {
                 .templateId(TEMPLATE_ID)
                 .build();
 
-        Mockito.when(proxy.injectCredentialsAndInvokeV2(any(), any()))
-                .thenReturn(putProfileObjectTypeResponse);
+        Mockito.doReturn(GetProfileObjectTypeResponse.builder().build()).when(proxy).injectCredentialsAndInvokeV2(any(GetProfileObjectTypeRequest.class), any());
+        Mockito.doReturn(TagResourceResponse.builder().build()).when(proxy).injectCredentialsAndInvokeV2(any(TagResourceRequest.class), any());
+        Mockito.doReturn(putProfileObjectTypeResponse).when(proxy).injectCredentialsAndInvokeV2(any(PutProfileObjectTypeRequest.class), any());
 
         final ProgressEvent<ResourceModel, CallbackContext> response
                 = handler.handleRequest(proxy, request, null, logger);
 
+        Mockito.verify(proxy, Mockito.times(0)).injectCredentialsAndInvokeV2(any(UntagResourceRequest.class), any());
+        Mockito.verify(proxy).injectCredentialsAndInvokeV2(any(TagResourceRequest.class), any());
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
         assertThat(response.getCallbackContext()).isNull();
@@ -202,12 +210,15 @@ public class UpdateHandlerTest {
                 .templateId(TEMPLATE_ID)
                 .build();
 
-        Mockito.when(proxy.injectCredentialsAndInvokeV2(any(), any()))
-                .thenReturn(putProfileObjectTypeResponse);
+        Mockito.doReturn(GetProfileObjectTypeResponse.builder().build()).when(proxy).injectCredentialsAndInvokeV2(any(GetProfileObjectTypeRequest.class), any());
+        Mockito.doReturn(TagResourceResponse.builder().build()).when(proxy).injectCredentialsAndInvokeV2(any(TagResourceRequest.class), any());
+        Mockito.doReturn(putProfileObjectTypeResponse).when(proxy).injectCredentialsAndInvokeV2(any(PutProfileObjectTypeRequest.class), any());
 
         final ProgressEvent<ResourceModel, CallbackContext> response
                 = handler.handleRequest(proxy, request, null, logger);
 
+        Mockito.verify(proxy, Mockito.times(0)).injectCredentialsAndInvokeV2(any(UntagResourceRequest.class), any());
+        Mockito.verify(proxy).injectCredentialsAndInvokeV2(any(TagResourceRequest.class), any());
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
         assertThat(response.getCallbackContext()).isNull();
@@ -252,12 +263,15 @@ public class UpdateHandlerTest {
                 .templateId(TEMPLATE_ID)
                 .build();
 
-        Mockito.when(proxy.injectCredentialsAndInvokeV2(any(), any()))
-                .thenReturn(putProfileObjectTypeResponse);
+        Mockito.doReturn(GetProfileObjectTypeResponse.builder().build()).when(proxy).injectCredentialsAndInvokeV2(any(GetProfileObjectTypeRequest.class), any());
+        Mockito.doReturn(UntagResourceResponse.builder().build()).when(proxy).injectCredentialsAndInvokeV2(any(UntagResourceRequest.class), any());
+        Mockito.doReturn(putProfileObjectTypeResponse).when(proxy).injectCredentialsAndInvokeV2(any(PutProfileObjectTypeRequest.class), any());
 
         final ProgressEvent<ResourceModel, CallbackContext> response
                 = handler.handleRequest(proxy, request, null, logger);
 
+        Mockito.verify(proxy).injectCredentialsAndInvokeV2(any(UntagResourceRequest.class), any());
+        Mockito.verify(proxy, Mockito.times(0)).injectCredentialsAndInvokeV2(any(TagResourceRequest.class), any());
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
         assertThat(response.getCallbackContext()).isNull();
@@ -302,12 +316,15 @@ public class UpdateHandlerTest {
                 .templateId(TEMPLATE_ID)
                 .build();
 
-        Mockito.when(proxy.injectCredentialsAndInvokeV2(any(), any()))
-                .thenReturn(putProfileObjectTypeResponse);
+        Mockito.doReturn(GetProfileObjectTypeResponse.builder().build()).when(proxy).injectCredentialsAndInvokeV2(any(GetProfileObjectTypeRequest.class), any());
+        Mockito.doReturn(UntagResourceResponse.builder().build()).when(proxy).injectCredentialsAndInvokeV2(any(UntagResourceRequest.class), any());
+        Mockito.doReturn(putProfileObjectTypeResponse).when(proxy).injectCredentialsAndInvokeV2(any(PutProfileObjectTypeRequest.class), any());
 
         final ProgressEvent<ResourceModel, CallbackContext> response
                 = handler.handleRequest(proxy, request, null, logger);
 
+        Mockito.verify(proxy).injectCredentialsAndInvokeV2(any(UntagResourceRequest.class), any());
+        Mockito.verify(proxy, Mockito.times(0)).injectCredentialsAndInvokeV2(any(TagResourceRequest.class), any());
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
         assertThat(response.getCallbackContext()).isNull();

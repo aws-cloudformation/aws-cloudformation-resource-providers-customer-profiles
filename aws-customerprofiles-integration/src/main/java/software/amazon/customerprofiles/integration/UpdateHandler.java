@@ -9,6 +9,7 @@ import software.amazon.awssdk.services.customerprofiles.model.InternalServerExce
 import software.amazon.awssdk.services.customerprofiles.model.PutIntegrationRequest;
 import software.amazon.awssdk.services.customerprofiles.model.PutIntegrationResponse;
 import software.amazon.awssdk.services.customerprofiles.model.ResourceNotFoundException;
+import software.amazon.awssdk.services.customerprofiles.model.TagResourceRequest;
 import software.amazon.awssdk.services.customerprofiles.model.UntagResourceRequest;
 import software.amazon.cloudformation.exceptions.CfnGeneralServiceException;
 import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
@@ -83,20 +84,19 @@ public class UpdateHandler extends BaseHandler<CallbackContext> {
             }
         }
 
-        final Map<String, String> resourceTag;
-        if (request.getDesiredResourceTags() == null) {
-            resourceTag = null;
-        } else if (request.getDesiredResourceTags().isEmpty()) {
-            resourceTag = null;
-        } else {
-            resourceTag = request.getDesiredResourceTags();
+        if (request.getDesiredResourceTags() != null && !request.getDesiredResourceTags().isEmpty()) {
+            final Map<String, String> resourceTag = request.getDesiredResourceTags();
+            final TagResourceRequest tagResourceRequest = TagResourceRequest.builder()
+                    .resourceArn(software.amazon.customerprofiles.integration.Translator.toIntegrationArn(request))
+                    .tags(resourceTag)
+                    .build();
+            proxy.injectCredentialsAndInvokeV2(tagResourceRequest, client::tagResource);
         }
         final PutIntegrationRequest putIntegrationRequest = PutIntegrationRequest.builder()
                 .domainName(requestModel.getDomainName())
                 // ObjectTypeName can be updated
                 .objectTypeName(requestModel.getObjectTypeName())
                 .uri(requestModel.getUri())
-                .tags(resourceTag)
                 .objectTypeNames(Translator.mapListToObjectTypeNames(requestModel.getObjectTypeNames()))
                 .build();
 
