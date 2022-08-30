@@ -9,6 +9,7 @@ import software.amazon.awssdk.services.customerprofiles.model.InternalServerExce
 import software.amazon.awssdk.services.customerprofiles.model.PutProfileObjectTypeRequest;
 import software.amazon.awssdk.services.customerprofiles.model.PutProfileObjectTypeResponse;
 import software.amazon.awssdk.services.customerprofiles.model.ResourceNotFoundException;
+import software.amazon.awssdk.services.customerprofiles.model.TagResourceRequest;
 import software.amazon.awssdk.services.customerprofiles.model.UntagResourceRequest;
 import software.amazon.cloudformation.exceptions.CfnGeneralServiceException;
 import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
@@ -84,13 +85,13 @@ public class UpdateHandler extends BaseHandler<CallbackContext> {
             }
         }
 
-        final Map<String, String> resourceTag;
-        if (request.getDesiredResourceTags() == null) {
-            resourceTag = null;
-        } else if (request.getDesiredResourceTags().isEmpty()) {
-            resourceTag = null;
-        } else {
-            resourceTag = request.getDesiredResourceTags();
+        if (request.getDesiredResourceTags() != null && !request.getDesiredResourceTags().isEmpty()) {
+            final Map<String, String> resourceTag = request.getDesiredResourceTags();
+            final TagResourceRequest tagResourceRequest = TagResourceRequest.builder()
+                    .resourceArn(software.amazon.customerprofiles.objecttype.Translator.toProfileObjectTypeARN(request))
+                    .tags(resourceTag)
+                    .build();
+            proxy.injectCredentialsAndInvokeV2(tagResourceRequest, client::tagResource);
         }
         final PutProfileObjectTypeRequest putProfileObjectTypeRequest = PutProfileObjectTypeRequest.builder()
                 .domainName(model.getDomainName())
@@ -101,7 +102,6 @@ public class UpdateHandler extends BaseHandler<CallbackContext> {
                 .expirationDays(model.getExpirationDays())
                 .fields(Translator.listFieldsToMap(model.getFields()))
                 .keys(Translator.listKeysToMap(model.getKeys()))
-                .tags(resourceTag)
                 .templateId(model.getTemplateId())
                 .build();
 
