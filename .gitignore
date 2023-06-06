@@ -28,6 +28,8 @@ hs_err_pid*
 
 # Build
 target/
+build/
+/build/
 
 # Generated Files
 .classpath
