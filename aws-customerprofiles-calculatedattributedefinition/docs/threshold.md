@@ -49,4 +49,3 @@ _Type_: String
 _Allowed Values_: <code>EQUAL_TO</code> | <code>GREATER_THAN</code> | <code>LESS_THAN</code> | <code>NOT_EQUAL_TO</code>
 
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
-

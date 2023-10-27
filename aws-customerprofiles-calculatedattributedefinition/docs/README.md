@@ -161,4 +161,3 @@ The timestamp of when the calculated attribute definition was created.
 #### LastUpdatedAt
 
 The timestamp of when the calculated attribute definition was most recently edited.
-
