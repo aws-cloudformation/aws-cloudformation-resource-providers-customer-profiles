@@ -114,7 +114,7 @@ public class DeleteHandlerTest {
 
     @Test
     public void handleRequest_andOtherException() {
-        final DeleteHandler handler = new DeleteHandler(customerProfilesClient);
+        final DeleteHandler handler = new DeleteHandler();
         ThrottlingException exception = ThrottlingException.builder().build();
         Mockito.doThrow(exception).when(proxy).injectCredentialsAndInvokeV2(
                 any(DeleteCalculatedAttributeDefinitionRequest.class), any());

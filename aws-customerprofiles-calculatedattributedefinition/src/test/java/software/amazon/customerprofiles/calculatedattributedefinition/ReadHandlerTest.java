@@ -160,7 +160,7 @@ public class ReadHandlerTest {
 
     @Test
     public void handleRequest_andOtherException() {
-        final ReadHandler handler = new ReadHandler(customerProfilesClient);
+        final ReadHandler handler = new ReadHandler();
         ThrottlingException exception = ThrottlingException.builder().build();
         Mockito.doThrow(exception).when(proxy).injectCredentialsAndInvokeV2(
                 any(GetCalculatedAttributeDefinitionRequest.class), any());

@@ -145,7 +145,7 @@ public class ListHandlerTest {
 
     @Test
     public void handleRequest_andOtherException() {
-        final ListHandler handler = new ListHandler(customerProfilesClient);
+        final ListHandler handler = new ListHandler();
         ThrottlingException exception = ThrottlingException.builder().build();
         Mockito.doThrow(exception).when(proxy).injectCredentialsAndInvokeV2(
                 any(ListCalculatedAttributeDefinitionsRequest.class), any());

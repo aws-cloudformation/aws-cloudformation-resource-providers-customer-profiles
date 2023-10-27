@@ -249,7 +249,7 @@ public class CreateHandlerTest {
 
     @Test
     public void handleRequest_andOtherException() {
-        final CreateHandler handler = new CreateHandler(customerProfilesClient);
+        final CreateHandler handler = new CreateHandler();
         ThrottlingException exception = ThrottlingException.builder().build();
         Mockito.doThrow(exception).when(proxy).injectCredentialsAndInvokeV2(
                 any(CreateCalculatedAttributeDefinitionRequest.class), any());

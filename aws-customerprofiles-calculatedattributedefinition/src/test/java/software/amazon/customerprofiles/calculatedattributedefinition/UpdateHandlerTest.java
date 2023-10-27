@@ -345,7 +345,7 @@ public class UpdateHandlerTest {
 
     @Test
     public void handleRequest_andUpdateDefinition_hasOtherException() {
-        final UpdateHandler handler = new UpdateHandler(customerProfilesClient);
+        final UpdateHandler handler = new UpdateHandler();
         Mockito.doReturn(GetCalculatedAttributeDefinitionResponse.builder().build()).when(proxy).injectCredentialsAndInvokeV2(
                 any(GetCalculatedAttributeDefinitionRequest.class), any());
         ThrottlingException exception = ThrottlingException.builder().build();
