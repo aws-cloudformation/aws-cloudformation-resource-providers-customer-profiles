@@ -113,4 +113,3 @@ The operational state of destination stream for export.
 #### EventStreamArn
 
 A unique identifier for the event stream.
-
