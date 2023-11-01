@@ -159,4 +159,3 @@ Returns the <code>Status</code> value.
 #### Stats
 
 Usage-specific statistics about the domain.
-

@@ -77,4 +77,3 @@ _Type_: String
 _Allowed Values_: <code>PROJECTION</code> | <code>GREATER_THAN</code> | <code>ADDITION</code> | <code>MULTIPLICATION</code> | <code>DIVISION</code> | <code>SUBTRACTION</code> | <code>MASK_ALL</code> | <code>MASK_FIRST_N</code> | <code>MASK_LAST_N</code> | <code>VALIDATE_NON_NULL</code> | <code>VALIDATE_NON_ZERO</code> | <code>VALIDATE_NON_NEGATIVE</code> | <code>VALIDATE_NUMERIC</code> | <code>NO_OP</code>
 
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
-

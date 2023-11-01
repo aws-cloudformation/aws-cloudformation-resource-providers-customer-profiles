@@ -1,6 +1,6 @@
 # AWS::CustomerProfiles::Domain ConflictResolution
 
-How the auto-merging process should resolve conflicts between different profiles. For example, if Profile A and Profile B have the same FirstName and LastName (and that is the matching criteria), which EmailAddress should be used? 
+How the auto-merging process should resolve conflicts between different profiles. For example, if Profile A and Profile B have the same FirstName and LastName (and that is the matching criteria), which EmailAddress should be used?
 
 ## Syntax
 
@@ -49,4 +49,3 @@ _Minimum Length_: <code>1</code>
 _Maximum Length_: <code>255</code>
 
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
-

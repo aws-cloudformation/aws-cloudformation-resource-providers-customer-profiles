@@ -47,4 +47,3 @@ _Maximum Length_: <code>255</code>
 _Pattern_: <code>^[a-zA-Z_][a-zA-Z_0-9-]*$</code>
 
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
-
