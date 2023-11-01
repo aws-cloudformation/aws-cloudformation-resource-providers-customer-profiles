@@ -84,7 +84,7 @@ public class CreateHandler extends BaseHandler<CallbackContext> {
         }
 
         final ResourceModel responseModel = ResourceModel.builder()
-            .createdAt(createDefinitionResponse.createdAt() == null ? null : createDefinitionResponse.createdAt().toString())
+            .createdAt(createDomainResponse.createdAt() == null ? null : createDefinitionResponse.createdAt().toString())
             .deadLetterQueueUrl(createDomainResponse.deadLetterQueueUrl())
             .defaultEncryptionKey(createDomainResponse.defaultEncryptionKey())
             .defaultExpirationDays(createDomainResponse.defaultExpirationDays())
