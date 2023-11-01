@@ -24,8 +24,11 @@ phases:
       - mvn clean verify --no-transfer-progress
       - cd "$CODEBUILD_SRC_DIR/aws-customerprofiles-calculatedattributedefinition"
       - mvn clean verify --no-transfer-progress
+      - cd "$CODEBUILD_SRC_DIR/aws-customerprofiles-eventstream"
+      - mvn clean verify --no-transfer-progress
     finally:
       - cat "$CODEBUILD_SRC_DIR/aws-customerprofiles-domain/rpdk.log"
       - cat "$CODEBUILD_SRC_DIR/aws-customerprofiles-integration/rpdk.log"
       - cat "$CODEBUILD_SRC_DIR/aws-customerprofiles-objecttype/rpdk.log"
       - cat "$CODEBUILD_SRC_DIR/aws-customerprofiles-calculatedattributedefinition/rpdk.log"
+      - cat "$CODEBUILD_SRC_DIR/aws-customerprofiles-eventstream/rpdk.log"
