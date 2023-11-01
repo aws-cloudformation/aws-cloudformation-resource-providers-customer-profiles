@@ -74,6 +74,7 @@ public class CreateHandler extends BaseHandler<CallbackContext> {
                     .keys(Translator.listKeysToMap(model.getKeys()))
                     .tags(resourceTag)
                     .templateId(model.getTemplateId())
+                    .sourceLastUpdatedTimestampFormat(model.getSourceLastUpdatedTimestampFormat())
                     .build();
 
             final PutProfileObjectTypeResponse putProfileObjectTypeResponse;
@@ -91,20 +92,7 @@ public class CreateHandler extends BaseHandler<CallbackContext> {
                 throw new CfnGeneralServiceException(e);
             }
 
-            final ResourceModel responseModel = ResourceModel.builder()
-                    .domainName(model.getDomainName())
-                    .allowProfileCreation(putProfileObjectTypeResponse.allowProfileCreation())
-                    .createdAt(putProfileObjectTypeResponse.createdAt().toString())
-                    .description(putProfileObjectTypeResponse.description())
-                    .encryptionKey(putProfileObjectTypeResponse.encryptionKey())
-                    .expirationDays(putProfileObjectTypeResponse.expirationDays())
-                    .fields(Translator.mapFieldsToList(putProfileObjectTypeResponse.fields()))
-                    .keys(Translator.mapKeysToList(putProfileObjectTypeResponse.keys()))
-                    .lastUpdatedAt(putProfileObjectTypeResponse.lastUpdatedAt().toString())
-                    .objectTypeName(putProfileObjectTypeResponse.objectTypeName())
-                    .tags(Translator.mapTagsToList(putProfileObjectTypeResponse.tags()))
-                    .templateId(putProfileObjectTypeResponse.templateId())
-                    .build();
+            final ResourceModel responseModel = getResourceModel(model, putProfileObjectTypeResponse);
 
             return ProgressEvent.defaultSuccessHandler(responseModel);
         }
@@ -119,5 +107,29 @@ public class CreateHandler extends BaseHandler<CallbackContext> {
                 .message(errorMessage)
                 .build();
         throw new CfnAlreadyExistsException(e);
+    }
+
+    private ResourceModel getResourceModel(ResourceModel model, PutProfileObjectTypeResponse putProfileObjectTypeResponse) {
+        ResourceModel responseModel;
+        try {
+            responseModel = ResourceModel.builder()
+                .domainName(model.getDomainName())
+                .allowProfileCreation(putProfileObjectTypeResponse.allowProfileCreation())
+                .createdAt(putProfileObjectTypeResponse.createdAt() == null ? null : putProfileObjectTypeResponse.createdAt().toString())
+                .description(putProfileObjectTypeResponse.description())
+                .encryptionKey(putProfileObjectTypeResponse.encryptionKey())
+                .expirationDays(putProfileObjectTypeResponse.expirationDays())
+                .fields(Translator.mapFieldsToList(putProfileObjectTypeResponse.fields()))
+                .keys(Translator.mapKeysToList(putProfileObjectTypeResponse.keys()))
+                .lastUpdatedAt(putProfileObjectTypeResponse.lastUpdatedAt() == null ? null : putProfileObjectTypeResponse.lastUpdatedAt().toString())
+                .objectTypeName(putProfileObjectTypeResponse.objectTypeName())
+                .tags(Translator.mapTagsToList(putProfileObjectTypeResponse.tags()))
+                .templateId(putProfileObjectTypeResponse.templateId())
+                .sourceLastUpdatedTimestampFormat(putProfileObjectTypeResponse.sourceLastUpdatedTimestampFormat())
+                .build();
+        } catch (Exception e) {
+            throw new CfnGeneralServiceException(e);
+        }
+        return responseModel;
     }
 }

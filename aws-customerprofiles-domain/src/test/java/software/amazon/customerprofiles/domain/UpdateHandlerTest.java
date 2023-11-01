@@ -1,13 +1,16 @@
 package software.amazon.customerprofiles.domain;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import org.mockito.Mockito;
 import software.amazon.awssdk.services.customerprofiles.CustomerProfilesClient;
 import software.amazon.awssdk.services.customerprofiles.model.BadRequestException;
 import software.amazon.awssdk.services.customerprofiles.model.GetDomainRequest;
 import software.amazon.awssdk.services.customerprofiles.model.GetDomainResponse;
 import software.amazon.awssdk.services.customerprofiles.model.InternalServerException;
+import software.amazon.awssdk.services.customerprofiles.model.MatchingResponse;
 import software.amazon.awssdk.services.customerprofiles.model.ResourceNotFoundException;
+import software.amazon.awssdk.services.customerprofiles.model.RuleBasedMatchingResponse;
 import software.amazon.awssdk.services.customerprofiles.model.TagResourceRequest;
 import software.amazon.awssdk.services.customerprofiles.model.TagResourceResponse;
 import software.amazon.awssdk.services.customerprofiles.model.ThrottlingException;
@@ -31,6 +34,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -49,7 +54,11 @@ public class UpdateHandlerTest {
     private static final String DOMAIN_NAME = "testDomainName";
     private static final Map<String, String> PREVIOUS_TAGS = ImmutableMap.of("Key1", "Value1", "Key2", "Value2");
     private static final Map<String, String> DESIRED_TAGS = ImmutableMap.of("Key2", "Value4", "Key3", "Value3");
-
+    private static final String conflictResolvingModel = "SOURCE";
+    private static final String sourceName = "Salesforce-Account";
+    private static final String dayOfTheWeek = "MONDAY";
+    private static final String time = "10:00";
+    private static final String s3KeyName = "domain-matching-rulebasedmatching-testing";
     private static ResourceModel model;
 
     @Mock
@@ -58,19 +67,99 @@ public class UpdateHandlerTest {
     private CustomerProfilesClient customerProfilesClient;
     @Mock
     private Logger logger;
+    private MatchingResponse matchingResponse;
+    private RuleBasedMatchingResponse ruleBasedMatchingResponse;
 
     @BeforeEach
     public void setup() {
         proxy = Mockito.mock(AmazonWebServicesClientProxy.class);
         customerProfilesClient = Mockito.mock(CustomerProfilesClient.class);
         logger = Mockito.mock(Logger.class);
+        List<String> RULE_FIRSTNAME_LASTNAME = Lists.newArrayList("FIRST_NAME", "LAST_NAME");
+        List<List<String>> matchingAttributesList = new ArrayList<>();
+        matchingAttributesList.add(RULE_FIRSTNAME_LASTNAME);
+        String attributeMatchingModel = "ONE_TO_ONE";
+        List<String> emailTypesSelectorList = Lists.newArrayList("EmailAddress");
+        List<String> addressTypesSelectorList = Lists.newArrayList("MailingAddress", "ShippingAddress");
+        List<String> phoneNumberTypesSelectorList = Lists.newArrayList("PhoneNumber", "HomePhoneNumber");
+
+        Matching matching = Matching.builder()
+            .enabled(true)
+            .autoMerging(AutoMerging.builder()
+                .conflictResolution(ConflictResolution.builder().conflictResolvingModel(conflictResolvingModel).sourceName(sourceName).build())
+                .enabled(true)
+                .consolidation(Consolidation.builder().matchingAttributesList(matchingAttributesList).build())
+                .minAllowedConfidenceScoreForMerging(0.4)
+                .build())
+            .exportingConfig(ExportingConfig.builder().s3Exporting(S3ExportingConfig.builder()
+                .s3KeyName(s3KeyName).s3BucketName("test/").build()).build())
+            .jobSchedule(JobSchedule.builder().dayOfTheWeek(dayOfTheWeek).time(time).build())
+            .build();
+
+        matchingResponse = MatchingResponse.builder()
+            .enabled(true)
+            .autoMerging(software.amazon.awssdk.services.customerprofiles.model.AutoMerging.builder()
+                .conflictResolution(
+                    software.amazon.awssdk.services.customerprofiles.model.ConflictResolution.builder().conflictResolvingModel(conflictResolvingModel)
+                        .sourceName(
+                            sourceName).build())
+                .enabled(true)
+                .consolidation(
+                    software.amazon.awssdk.services.customerprofiles.model.Consolidation.builder().matchingAttributesList(matchingAttributesList).build())
+                .minAllowedConfidenceScoreForMerging(0.4)
+                .build())
+            .exportingConfig(software.amazon.awssdk.services.customerprofiles.model.ExportingConfig.builder()
+                .s3Exporting(software.amazon.awssdk.services.customerprofiles.model.S3ExportingConfig.builder()
+                    .s3KeyName(s3KeyName).s3BucketName("test/").build()).build())
+            .jobSchedule(software.amazon.awssdk.services.customerprofiles.model.JobSchedule.builder().dayOfTheWeek(dayOfTheWeek).time(time).build())
+            .build();
+
+        RuleBasedMatching ruleBasedMatching = RuleBasedMatching.builder()
+            .enabled(true)
+            .exportingConfig(ExportingConfig.builder().s3Exporting(S3ExportingConfig.builder()
+                .s3KeyName(s3KeyName).s3BucketName("test/").build()).build())
+            .conflictResolution(ConflictResolution.builder().conflictResolvingModel(conflictResolvingModel).sourceName(sourceName).build())
+            .matchingRules(Lists.newArrayList(
+                MatchingRule.builder()
+                    .rule(RULE_FIRSTNAME_LASTNAME)
+                    .build()))
+            .attributeTypesSelector(AttributeTypesSelector.builder().attributeMatchingModel(attributeMatchingModel)
+                .emailAddress(emailTypesSelectorList)
+                .address(addressTypesSelectorList)
+                .phoneNumber(phoneNumberTypesSelectorList).build())
+            .maxAllowedRuleLevelForMatching(1)
+            .maxAllowedRuleLevelForMerging(1)
+            .build();
+
+        ruleBasedMatchingResponse = RuleBasedMatchingResponse.builder()
+            .enabled(true)
+            .conflictResolution(
+                software.amazon.awssdk.services.customerprofiles.model.ConflictResolution.builder().conflictResolvingModel(conflictResolvingModel)
+                    .sourceName(
+                        sourceName).build())
+            .matchingRules(Lists.newArrayList(
+                software.amazon.awssdk.services.customerprofiles.model.MatchingRule.builder().rule(RULE_FIRSTNAME_LASTNAME).build()))
+            .attributeTypesSelector(
+                software.amazon.awssdk.services.customerprofiles.model.AttributeTypesSelector.builder().attributeMatchingModel(attributeMatchingModel)
+                    .emailAddress(emailTypesSelectorList)
+                    .address(addressTypesSelectorList)
+                    .phoneNumber(phoneNumberTypesSelectorList).build())
+            .maxAllowedRuleLevelForMatching(1)
+            .maxAllowedRuleLevelForMerging(1)
+            .exportingConfig(software.amazon.awssdk.services.customerprofiles.model.ExportingConfig.builder()
+                .s3Exporting(software.amazon.awssdk.services.customerprofiles.model.S3ExportingConfig.builder()
+                    .s3KeyName(s3KeyName).s3BucketName("test/").build()).build())
+            .status("ACTIVE")
+            .build();
 
         model = ResourceModel.builder()
-                .domainName(DOMAIN_NAME)
-                .deadLetterQueueUrl(QUEUE_URL)
-                .defaultEncryptionKey(KEY_ARN)
-                .defaultExpirationDays(EXPIRATION_DAYS)
-                .build();
+            .domainName(DOMAIN_NAME)
+            .deadLetterQueueUrl(QUEUE_URL)
+            .defaultEncryptionKey(KEY_ARN)
+            .defaultExpirationDays(EXPIRATION_DAYS)
+            .matching(matching)
+            .ruleBasedMatching(ruleBasedMatching)
+            .build();
     }
 
     @Test
@@ -84,13 +173,16 @@ public class UpdateHandlerTest {
                 .build();
 
         final UpdateDomainResponse updateDomainResponse = UpdateDomainResponse.builder()
-                .createdAt(TIME)
-                .deadLetterQueueUrl(QUEUE_URL)
-                .defaultEncryptionKey(KEY_ARN)
-                .defaultExpirationDays(EXPIRATION_DAYS)
-                .lastUpdatedAt(TIME)
-                .tags(DESIRED_TAGS)
-                .build();
+            .createdAt(TIME)
+            .domainName(DOMAIN_NAME)
+            .deadLetterQueueUrl(QUEUE_URL)
+            .defaultEncryptionKey(KEY_ARN)
+            .defaultExpirationDays(EXPIRATION_DAYS)
+            .lastUpdatedAt(TIME)
+            .tags(DESIRED_TAGS)
+            .matching(matchingResponse)
+            .ruleBasedMatching(ruleBasedMatchingResponse)
+            .build();
 
         Mockito.doReturn(GetDomainResponse.builder().build()).when(proxy).injectCredentialsAndInvokeV2(any(GetDomainRequest.class), any());
         Mockito.doReturn(UntagResourceResponse.builder().build()).when(proxy).injectCredentialsAndInvokeV2(any(UntagResourceRequest.class), any());
@@ -108,6 +200,10 @@ public class UpdateHandlerTest {
         assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
         assertThat(response.getResourceModel().getTags().get(0).getValue()).isEqualTo(
                 DESIRED_TAGS.get(response.getResourceModel().getTags().get(0).getKey()));
+        assertThat(response.getResourceModel().getDomainName()).isEqualTo(DOMAIN_NAME);
+        assertThat(response.getResourceModel().getMatching()).isEqualTo(request.getDesiredResourceState().getMatching());
+        assertThat(response.getResourceModel().getRuleBasedMatching().getMatchingRules()).isEqualTo(
+            request.getDesiredResourceState().getRuleBasedMatching().getMatchingRules());
         assertThat(response.getResourceModels()).isNull();
         assertThat(response.getMessage()).isNull();
         assertThat(response.getErrorCode()).isNull();

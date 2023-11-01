@@ -1,6 +1,8 @@
 ## aws-cloudformation-resource-providers-customer-profiles
 
-The CloudFormation Resource Provider Package For AWS Connect Customer Profiles
+The CloudFormation Resource Provider Package For AWS Connect Customer Profiles.
+
+GitHub: https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-customer-profiles
 
 
 ## Security

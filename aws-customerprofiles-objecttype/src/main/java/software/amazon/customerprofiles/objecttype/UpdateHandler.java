@@ -18,7 +18,6 @@ import software.amazon.cloudformation.exceptions.CfnServiceInternalErrorExceptio
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.ProgressEvent;
-import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
 import java.util.List;
@@ -103,6 +102,7 @@ public class UpdateHandler extends BaseHandler<CallbackContext> {
                 .fields(Translator.listFieldsToMap(model.getFields()))
                 .keys(Translator.listKeysToMap(model.getKeys()))
                 .templateId(model.getTemplateId())
+                .sourceLastUpdatedTimestampFormat(model.getSourceLastUpdatedTimestampFormat())
                 .build();
 
         final PutProfileObjectTypeResponse putProfileObjectTypeResponse;
@@ -120,21 +120,32 @@ public class UpdateHandler extends BaseHandler<CallbackContext> {
             throw new CfnGeneralServiceException(e);
         }
 
-        final ResourceModel responseModel = ResourceModel.builder()
+        final ResourceModel responseModel = getResourceModel(model, putProfileObjectTypeResponse);
+
+        return ProgressEvent.defaultSuccessHandler(responseModel);
+    }
+
+    private ResourceModel getResourceModel(ResourceModel model, PutProfileObjectTypeResponse putProfileObjectTypeResponse) {
+        ResourceModel responseModel;
+        try {
+            responseModel = ResourceModel.builder()
                 .domainName(model.getDomainName())
                 .allowProfileCreation(putProfileObjectTypeResponse.allowProfileCreation())
-                .createdAt(putProfileObjectTypeResponse.createdAt().toString())
+                .createdAt(putProfileObjectTypeResponse.createdAt() == null ? null : putProfileObjectTypeResponse.createdAt().toString())
                 .description(putProfileObjectTypeResponse.description())
                 .encryptionKey(putProfileObjectTypeResponse.encryptionKey())
                 .expirationDays(putProfileObjectTypeResponse.expirationDays())
                 .fields(Translator.mapFieldsToList(putProfileObjectTypeResponse.fields()))
                 .keys(Translator.mapKeysToList(putProfileObjectTypeResponse.keys()))
-                .lastUpdatedAt(putProfileObjectTypeResponse.lastUpdatedAt().toString())
+                .lastUpdatedAt(putProfileObjectTypeResponse.lastUpdatedAt() == null ? null : putProfileObjectTypeResponse.lastUpdatedAt().toString())
                 .objectTypeName(putProfileObjectTypeResponse.objectTypeName())
                 .tags(Translator.mapTagsToList(putProfileObjectTypeResponse.tags()))
                 .templateId(putProfileObjectTypeResponse.templateId())
+                .sourceLastUpdatedTimestampFormat(putProfileObjectTypeResponse.sourceLastUpdatedTimestampFormat())
                 .build();
-
-        return ProgressEvent.defaultSuccessHandler(responseModel);
+        } catch (Exception e) {
+            throw new CfnGeneralServiceException(e);
+        }
+        return responseModel;
     }
 }

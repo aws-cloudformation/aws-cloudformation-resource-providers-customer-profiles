@@ -14,7 +14,6 @@ import software.amazon.cloudformation.exceptions.CfnServiceInternalErrorExceptio
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.ProgressEvent;
-import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
 @NoArgsConstructor
@@ -59,21 +58,32 @@ public class ReadHandler extends BaseHandler<CallbackContext> {
             throw new CfnGeneralServiceException(e);
         }
 
-        final ResourceModel responseModel = ResourceModel.builder()
+        final ResourceModel responseModel = getResourceModel(model, getProfileObjectTypeResponse);
+
+        return ProgressEvent.defaultSuccessHandler(responseModel);
+    }
+
+    private ResourceModel getResourceModel(ResourceModel model, GetProfileObjectTypeResponse getProfileObjectTypeResponse) {
+        ResourceModel responseModel;
+        try {
+            responseModel = ResourceModel.builder()
                 .domainName(model.getDomainName())
                 .allowProfileCreation(getProfileObjectTypeResponse.allowProfileCreation())
-                .createdAt(getProfileObjectTypeResponse.createdAt().toString())
+                .createdAt(getProfileObjectTypeResponse.createdAt() == null ? null : getProfileObjectTypeResponse.createdAt().toString())
                 .description(getProfileObjectTypeResponse.description())
                 .encryptionKey(getProfileObjectTypeResponse.encryptionKey())
                 .expirationDays(getProfileObjectTypeResponse.expirationDays())
                 .fields(Translator.mapFieldsToList(getProfileObjectTypeResponse.fields()))
                 .keys(Translator.mapKeysToList(getProfileObjectTypeResponse.keys()))
-                .lastUpdatedAt(getProfileObjectTypeResponse.lastUpdatedAt().toString())
+                .lastUpdatedAt(getProfileObjectTypeResponse.lastUpdatedAt() == null ? null : getProfileObjectTypeResponse.lastUpdatedAt().toString())
                 .objectTypeName(getProfileObjectTypeResponse.objectTypeName())
                 .tags(Translator.mapTagsToList(getProfileObjectTypeResponse.tags()))
                 .templateId(getProfileObjectTypeResponse.templateId())
+                .sourceLastUpdatedTimestampFormat(getProfileObjectTypeResponse.sourceLastUpdatedTimestampFormat())
                 .build();
-
-        return ProgressEvent.defaultSuccessHandler(responseModel);
+        } catch (Exception e) {
+            throw new CfnGeneralServiceException(e);
+        }
+        return responseModel;
     }
 }

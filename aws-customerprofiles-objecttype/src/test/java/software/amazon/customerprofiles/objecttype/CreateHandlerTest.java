@@ -2,6 +2,7 @@ package software.amazon.customerprofiles.objecttype;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import software.amazon.awssdk.services.customerprofiles.CustomerProfilesClient;
 import software.amazon.awssdk.services.customerprofiles.model.BadRequestException;
@@ -39,6 +40,7 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mockStatic;
 
 @ExtendWith(MockitoExtension.class)
 public class CreateHandlerTest {
@@ -65,6 +67,7 @@ public class CreateHandlerTest {
                             .fieldNames(Lists.newArrayList("sfdcContactId"))
                             .build()));
     private static final String TEMPLATE_ID = "templateId";
+    private static final String SOURCE_LAST_UPDATED_TIMESTAMP_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSX";
     private static final Map<String, String> DESIRED_TAGS = ImmutableMap.of("Key2", "Value4", "Key3", "Value3");
 
     private static ResourceModel model;
@@ -109,6 +112,7 @@ public class CreateHandlerTest {
                 .lastUpdatedAt(TIME)
                 .objectTypeName(OBJECT_TYPE_NAME)
                 .templateId(TEMPLATE_ID)
+                .sourceLastUpdatedTimestampFormat(SOURCE_LAST_UPDATED_TIMESTAMP_FORMAT)
                 .build();
 
         ResourceNotFoundException exc = ResourceNotFoundException.builder()
@@ -155,6 +159,7 @@ public class CreateHandlerTest {
                 .lastUpdatedAt(TIME)
                 .objectTypeName(OBJECT_TYPE_NAME)
                 .templateId(TEMPLATE_ID)
+                .sourceLastUpdatedTimestampFormat(SOURCE_LAST_UPDATED_TIMESTAMP_FORMAT)
                 .tags(DESIRED_TAGS)
                 .build();
 
@@ -190,6 +195,94 @@ public class CreateHandlerTest {
     }
 
     @Test
+    public void handleRequest_whenCreatedAtIsNull() {
+        final CreateHandler handler = new CreateHandler(customerProfilesClient);
+
+        final PutProfileObjectTypeResponse result = PutProfileObjectTypeResponse.builder()
+            .allowProfileCreation(false)
+            .createdAt(null)
+            .description(DESCRIPTION)
+            .encryptionKey(KEY_ARN)
+            .expirationDays(EXPIRATION_DAYS)
+            .fields(fields)
+            .keys(keys)
+            .lastUpdatedAt(null)
+            .objectTypeName(OBJECT_TYPE_NAME)
+            .templateId(TEMPLATE_ID)
+            .sourceLastUpdatedTimestampFormat(SOURCE_LAST_UPDATED_TIMESTAMP_FORMAT)
+            .build();
+
+        ResourceNotFoundException exc = ResourceNotFoundException.builder()
+            .message("ResourceNotFoundException")
+            .build();
+
+        Mockito.doThrow(exc).when(proxy).injectCredentialsAndInvokeV2(
+            any(GetProfileObjectTypeRequest.class), any());
+
+        Mockito.doReturn(result).when(proxy).injectCredentialsAndInvokeV2(
+            any(PutProfileObjectTypeRequest.class), any());
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+            .desiredResourceState(model)
+            .build();
+
+        final ProgressEvent<ResourceModel, CallbackContext> response
+            = handler.handleRequest(proxy, request, null, logger);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+        assertThat(response.getCallbackContext()).isNull();
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
+        assertThat(response.getResourceModel().getDomainName()).isEqualTo(DOMAIN_NAME);
+        assertThat(response.getResourceModel().getTemplateId()).isEqualTo(TEMPLATE_ID);
+        assertThat(response.getResourceModel().getExpirationDays()).isEqualTo(EXPIRATION_DAYS);
+        assertThat(response.getResourceModel().getCreatedAt()).isNull();
+        assertThat(response.getResourceModels()).isNull();
+        assertThat(response.getMessage()).isNull();
+        assertThat(response.getErrorCode()).isNull();
+    }
+
+    @Test
+    public void handleRequest_throwsCfnGeneralServiceExceptionWhenConvertingApiResponse() {
+        try (MockedStatic<Translator> translatorMockedStatic = mockStatic(Translator.class)) {
+            translatorMockedStatic.when(() -> Translator.mapKeysToList(any()))
+                .thenThrow(new NullPointerException());
+
+            final CreateHandler handler = new CreateHandler(customerProfilesClient);
+
+            final PutProfileObjectTypeResponse result = PutProfileObjectTypeResponse.builder()
+                .allowProfileCreation(false)
+                .createdAt(TIME)
+                .description(DESCRIPTION)
+                .encryptionKey(KEY_ARN)
+                .expirationDays(EXPIRATION_DAYS)
+                .fields(fields)
+                .keys(keys)
+                .lastUpdatedAt(TIME)
+                .objectTypeName(OBJECT_TYPE_NAME)
+                .templateId(TEMPLATE_ID)
+                .sourceLastUpdatedTimestampFormat(SOURCE_LAST_UPDATED_TIMESTAMP_FORMAT)
+                .build();
+
+            ResourceNotFoundException exc = ResourceNotFoundException.builder()
+                .message("ResourceNotFoundException")
+                .build();
+
+            Mockito.doThrow(exc).when(proxy).injectCredentialsAndInvokeV2(
+                any(GetProfileObjectTypeRequest.class), any());
+
+            Mockito.doReturn(result).when(proxy).injectCredentialsAndInvokeV2(
+                any(PutProfileObjectTypeRequest.class), any());
+
+            final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(model)
+                .build();
+
+            assertThrows(CfnGeneralServiceException.class, () -> handler.handleRequest(proxy, request, null, logger));
+        }
+    }
+
+    @Test
     public void handleRequest_desiredResourceTagIsEmpty() {
         final CreateHandler handler = new CreateHandler(customerProfilesClient);
 
@@ -204,6 +297,7 @@ public class CreateHandlerTest {
                 .lastUpdatedAt(TIME)
                 .objectTypeName(OBJECT_TYPE_NAME)
                 .templateId(TEMPLATE_ID)
+                .sourceLastUpdatedTimestampFormat(SOURCE_LAST_UPDATED_TIMESTAMP_FORMAT)
                 .build();
 
         ResourceNotFoundException exc = ResourceNotFoundException.builder()
@@ -252,6 +346,7 @@ public class CreateHandlerTest {
                 .lastUpdatedAt(TIME)
                 .objectTypeName(OBJECT_TYPE_NAME)
                 .templateId(TEMPLATE_ID)
+                .sourceLastUpdatedTimestampFormat(SOURCE_LAST_UPDATED_TIMESTAMP_FORMAT)
                 .build();
 
         Mockito.doReturn(result).when(proxy).injectCredentialsAndInvokeV2(
@@ -329,7 +424,7 @@ public class CreateHandlerTest {
 
     @Test
     public void handleRequest_otherException() {
-        final CreateHandler handler = new CreateHandler(customerProfilesClient);
+        final CreateHandler handler = new CreateHandler();
 
         ThrottlingException exc = ThrottlingException.builder()
                 .message("ThrottlingException")

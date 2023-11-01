@@ -1,5 +1,11 @@
 package software.amazon.customerprofiles.domain;
 
+import static software.amazon.customerprofiles.domain.Translator.buildServiceMatching;
+import static software.amazon.customerprofiles.domain.Translator.buildServiceRuleBasedMatching;
+import static software.amazon.customerprofiles.domain.Translator.mapTagsToList;
+import static software.amazon.customerprofiles.domain.Translator.translateToInternalMatchingResponse;
+import static software.amazon.customerprofiles.domain.Translator.translateToInternalRuleBasedMatchingResponse;
+
 import lombok.NoArgsConstructor;
 import software.amazon.awssdk.services.customerprofiles.CustomerProfilesClient;
 import software.amazon.awssdk.services.customerprofiles.model.BadRequestException;
@@ -50,12 +56,14 @@ public class CreateHandler extends BaseHandler<CallbackContext> {
             resourceTag = request.getDesiredResourceTags();
         }
         final CreateDomainRequest createDomainRequest = CreateDomainRequest.builder()
-                .domainName(model.getDomainName())
-                .deadLetterQueueUrl(model.getDeadLetterQueueUrl())
-                .defaultEncryptionKey(model.getDefaultEncryptionKey())
-                .defaultExpirationDays(model.getDefaultExpirationDays())
-                .tags(resourceTag)
-                .build();
+            .domainName(model.getDomainName())
+            .deadLetterQueueUrl(model.getDeadLetterQueueUrl())
+            .defaultEncryptionKey(model.getDefaultEncryptionKey())
+            .defaultExpirationDays(model.getDefaultExpirationDays())
+            .matching(buildServiceMatching(model.getMatching()))
+            .ruleBasedMatching(buildServiceRuleBasedMatching(model.getRuleBasedMatching()))
+            .tags(resourceTag)
+            .build();
 
         final CreateDomainResponse createDomainResponse;
         try {
@@ -76,14 +84,16 @@ public class CreateHandler extends BaseHandler<CallbackContext> {
         }
 
         final ResourceModel responseModel = ResourceModel.builder()
-                .createdAt(createDomainResponse.createdAt().toString())
-                .deadLetterQueueUrl(createDomainResponse.deadLetterQueueUrl())
-                .defaultEncryptionKey(createDomainResponse.defaultEncryptionKey())
-                .defaultExpirationDays(createDomainResponse.defaultExpirationDays())
-                .domainName(createDomainResponse.domainName())
-                .lastUpdatedAt(createDomainResponse.lastUpdatedAt().toString())
-                .tags(Translator.mapTagsToList(createDomainResponse.tags()))
-                .build();
+            .createdAt(createDomainResponse.createdAt().toString())
+            .deadLetterQueueUrl(createDomainResponse.deadLetterQueueUrl())
+            .defaultEncryptionKey(createDomainResponse.defaultEncryptionKey())
+            .defaultExpirationDays(createDomainResponse.defaultExpirationDays())
+            .matching(translateToInternalMatchingResponse(createDomainResponse.matching()))
+            .ruleBasedMatching(translateToInternalRuleBasedMatchingResponse(createDomainResponse.ruleBasedMatching()))
+            .domainName(createDomainResponse.domainName())
+            .lastUpdatedAt(createDomainResponse.lastUpdatedAt().toString())
+            .tags(mapTagsToList(createDomainResponse.tags()))
+            .build();
 
         return ProgressEvent.defaultSuccessHandler(responseModel);
     }
