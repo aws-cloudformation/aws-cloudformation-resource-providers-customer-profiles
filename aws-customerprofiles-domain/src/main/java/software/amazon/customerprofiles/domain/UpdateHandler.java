@@ -122,14 +122,14 @@ public class UpdateHandler extends BaseHandler<CallbackContext> {
         }
 
         final ResourceModel responseModel = ResourceModel.builder()
-            .createdAt(updateDomainResponse.createdAt().toString())
+            .createdAt(updateDomainResponse.createdAt() == null ? null : updateDomainResponse.createdAt().toString())
             .deadLetterQueueUrl(updateDomainResponse.deadLetterQueueUrl())
             .defaultExpirationDays(updateDomainResponse.defaultExpirationDays())
             .defaultEncryptionKey(updateDomainResponse.defaultEncryptionKey())
             .domainName(updateDomainResponse.domainName())
             .matching(translateToInternalMatchingResponse(updateDomainResponse.matching()))
             .ruleBasedMatching(translateToInternalRuleBasedMatchingResponse(updateDomainResponse.ruleBasedMatching()))
-            .lastUpdatedAt(updateDomainResponse.lastUpdatedAt().toString())
+            .lastUpdatedAt(updateDomainResponse.lastUpdatedAt() == null ? null : updateDomainResponse.lastUpdatedAt().toString())
             .tags(mapTagsToList(updateDomainResponse.tags()))
             .build();
 

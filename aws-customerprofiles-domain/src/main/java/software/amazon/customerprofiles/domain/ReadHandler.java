@@ -62,14 +62,14 @@ public class ReadHandler extends BaseHandler<CallbackContext> {
         }
 
         final ResourceModel responseModel = ResourceModel.builder()
-            .createdAt(getDomainResponse.createdAt().toString())
+            .createdAt(getDomainResponse.createdAt() == null ? null : getDomainResponse.createdAt().toString())
             .deadLetterQueueUrl(getDomainResponse.deadLetterQueueUrl())
             .defaultEncryptionKey(getDomainResponse.defaultEncryptionKey())
             .defaultExpirationDays(getDomainResponse.defaultExpirationDays())
             .domainName(getDomainResponse.domainName())
             .matching(translateToInternalMatchingResponse(getDomainResponse.matching()))
             .ruleBasedMatching(translateToInternalRuleBasedMatchingResponse(getDomainResponse.ruleBasedMatching()))
-            .lastUpdatedAt(getDomainResponse.lastUpdatedAt().toString())
+            .lastUpdatedAt(getDomainResponse.lastUpdatedAt() == null ? null : getDomainResponse.lastUpdatedAt().toString())
             .stats(translateToInternalStats(getDomainResponse.stats()))
             .tags(mapTagsToList(getDomainResponse.tags()))
             .build();

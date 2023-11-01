@@ -84,14 +84,14 @@ public class CreateHandler extends BaseHandler<CallbackContext> {
         }
 
         final ResourceModel responseModel = ResourceModel.builder()
-            .createdAt(createDomainResponse.createdAt().toString())
+            .createdAt(createDefinitionResponse.createdAt() == null ? null : createDefinitionResponse.createdAt().toString())
             .deadLetterQueueUrl(createDomainResponse.deadLetterQueueUrl())
             .defaultEncryptionKey(createDomainResponse.defaultEncryptionKey())
             .defaultExpirationDays(createDomainResponse.defaultExpirationDays())
             .matching(translateToInternalMatchingResponse(createDomainResponse.matching()))
             .ruleBasedMatching(translateToInternalRuleBasedMatchingResponse(createDomainResponse.ruleBasedMatching()))
             .domainName(createDomainResponse.domainName())
-            .lastUpdatedAt(createDomainResponse.lastUpdatedAt().toString())
+            .lastUpdatedAt(createDomainResponse.lastUpdatedAt() == null ? null : createDefinitionResponse.lastUpdatedAt().toString())
             .tags(mapTagsToList(createDomainResponse.tags()))
             .build();
 
