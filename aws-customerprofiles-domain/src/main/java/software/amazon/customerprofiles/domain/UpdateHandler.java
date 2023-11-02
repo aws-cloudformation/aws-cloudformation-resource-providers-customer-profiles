@@ -1,5 +1,11 @@
 package software.amazon.customerprofiles.domain;
 
+import static software.amazon.customerprofiles.domain.Translator.buildServiceMatching;
+import static software.amazon.customerprofiles.domain.Translator.buildServiceRuleBasedMatching;
+import static software.amazon.customerprofiles.domain.Translator.mapTagsToList;
+import static software.amazon.customerprofiles.domain.Translator.translateToInternalMatchingResponse;
+import static software.amazon.customerprofiles.domain.Translator.translateToInternalRuleBasedMatchingResponse;
+
 import com.google.common.collect.Lists;
 import lombok.NoArgsConstructor;
 import software.amazon.awssdk.services.customerprofiles.CustomerProfilesClient;
@@ -66,7 +72,7 @@ public class UpdateHandler extends BaseHandler<CallbackContext> {
         }
 
         final List<Tag> previousTags = request.getPreviousResourceTags() == null ? Lists.newArrayList() :
-                Translator.mapTagsToList(request.getPreviousResourceTags());
+                mapTagsToList(request.getPreviousResourceTags());
 
         if (previousTags != null) {
             final List<String> tagsToRemove = previousTags.stream()
@@ -92,11 +98,13 @@ public class UpdateHandler extends BaseHandler<CallbackContext> {
             proxy.injectCredentialsAndInvokeV2(tagResourceRequest, client::tagResource);
         }
         final UpdateDomainRequest updateDomainRequest = UpdateDomainRequest.builder()
-                .domainName(model.getDomainName())
-                .deadLetterQueueUrl(model.getDeadLetterQueueUrl())
-                .defaultEncryptionKey(model.getDefaultEncryptionKey())
-                .defaultExpirationDays(model.getDefaultExpirationDays())
-                .build();
+            .domainName(model.getDomainName())
+            .deadLetterQueueUrl(model.getDeadLetterQueueUrl())
+            .defaultEncryptionKey(model.getDefaultEncryptionKey())
+            .defaultExpirationDays(model.getDefaultExpirationDays())
+            .matching(buildServiceMatching(model.getMatching()))
+            .ruleBasedMatching(buildServiceRuleBasedMatching(model.getRuleBasedMatching()))
+            .build();
 
         final UpdateDomainResponse updateDomainResponse;
         try {
@@ -114,14 +122,16 @@ public class UpdateHandler extends BaseHandler<CallbackContext> {
         }
 
         final ResourceModel responseModel = ResourceModel.builder()
-                .createdAt(updateDomainResponse.createdAt().toString())
-                .deadLetterQueueUrl(updateDomainResponse.deadLetterQueueUrl())
-                .defaultExpirationDays(updateDomainResponse.defaultExpirationDays())
-                .defaultEncryptionKey(updateDomainResponse.defaultEncryptionKey())
-                .domainName(updateDomainResponse.domainName())
-                .lastUpdatedAt(updateDomainResponse.lastUpdatedAt().toString())
-                .tags(Translator.mapTagsToList(updateDomainResponse.tags()))
-                .build();
+            .createdAt(updateDomainResponse.createdAt() == null ? null : updateDomainResponse.createdAt().toString())
+            .deadLetterQueueUrl(updateDomainResponse.deadLetterQueueUrl())
+            .defaultExpirationDays(updateDomainResponse.defaultExpirationDays())
+            .defaultEncryptionKey(updateDomainResponse.defaultEncryptionKey())
+            .domainName(updateDomainResponse.domainName())
+            .matching(translateToInternalMatchingResponse(updateDomainResponse.matching()))
+            .ruleBasedMatching(translateToInternalRuleBasedMatchingResponse(updateDomainResponse.ruleBasedMatching()))
+            .lastUpdatedAt(updateDomainResponse.lastUpdatedAt() == null ? null : updateDomainResponse.lastUpdatedAt().toString())
+            .tags(mapTagsToList(updateDomainResponse.tags()))
+            .build();
 
         return ProgressEvent.defaultSuccessHandler(responseModel);
     }

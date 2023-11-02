@@ -66,7 +66,7 @@ public class ListHandler extends BaseHandler<CallbackContext> {
                 .eventStreamName(item.eventStreamName())
                 .uri(requestModel.getUri())
                 .eventStreamArn(item.eventStreamArn())
-                .state(item.state().toString())
+                .state(item.state() == null ? null : item.state().toString())
                 .tags(Translator.mapTagsToSet(item.tags()))
                 .build();
             responseModels.add(responseModel);

@@ -1,5 +1,10 @@
 package software.amazon.customerprofiles.domain;
 
+import static software.amazon.customerprofiles.domain.Translator.mapTagsToList;
+import static software.amazon.customerprofiles.domain.Translator.translateToInternalMatchingResponse;
+import static software.amazon.customerprofiles.domain.Translator.translateToInternalRuleBasedMatchingResponse;
+import static software.amazon.customerprofiles.domain.Translator.translateToInternalStats;
+
 import lombok.NoArgsConstructor;
 import software.amazon.awssdk.services.customerprofiles.CustomerProfilesClient;
 import software.amazon.awssdk.services.customerprofiles.model.BadRequestException;
@@ -57,14 +62,17 @@ public class ReadHandler extends BaseHandler<CallbackContext> {
         }
 
         final ResourceModel responseModel = ResourceModel.builder()
-                .createdAt(getDomainResponse.createdAt().toString())
-                .deadLetterQueueUrl(getDomainResponse.deadLetterQueueUrl())
-                .defaultEncryptionKey(getDomainResponse.defaultEncryptionKey())
-                .defaultExpirationDays(getDomainResponse.defaultExpirationDays())
-                .domainName(getDomainResponse.domainName())
-                .lastUpdatedAt(getDomainResponse.lastUpdatedAt().toString())
-                .tags(Translator.mapTagsToList(getDomainResponse.tags()))
-                .build();
+            .createdAt(getDomainResponse.createdAt() == null ? null : getDomainResponse.createdAt().toString())
+            .deadLetterQueueUrl(getDomainResponse.deadLetterQueueUrl())
+            .defaultEncryptionKey(getDomainResponse.defaultEncryptionKey())
+            .defaultExpirationDays(getDomainResponse.defaultExpirationDays())
+            .domainName(getDomainResponse.domainName())
+            .matching(translateToInternalMatchingResponse(getDomainResponse.matching()))
+            .ruleBasedMatching(translateToInternalRuleBasedMatchingResponse(getDomainResponse.ruleBasedMatching()))
+            .lastUpdatedAt(getDomainResponse.lastUpdatedAt() == null ? null : getDomainResponse.lastUpdatedAt().toString())
+            .stats(translateToInternalStats(getDomainResponse.stats()))
+            .tags(mapTagsToList(getDomainResponse.tags()))
+            .build();
 
         return ProgressEvent.defaultSuccessHandler(responseModel);
     }

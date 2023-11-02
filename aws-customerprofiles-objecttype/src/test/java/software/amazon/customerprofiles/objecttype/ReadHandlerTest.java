@@ -2,13 +2,17 @@ package software.amazon.customerprofiles.objecttype;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import software.amazon.awssdk.services.customerprofiles.CustomerProfilesClient;
 import software.amazon.awssdk.services.customerprofiles.model.BadRequestException;
+import software.amazon.awssdk.services.customerprofiles.model.GetProfileObjectTypeRequest;
 import software.amazon.awssdk.services.customerprofiles.model.GetProfileObjectTypeResponse;
 import software.amazon.awssdk.services.customerprofiles.model.InternalServerException;
 import software.amazon.awssdk.services.customerprofiles.model.ObjectTypeField;
 import software.amazon.awssdk.services.customerprofiles.model.ObjectTypeKey;
+import software.amazon.awssdk.services.customerprofiles.model.PutProfileObjectTypeRequest;
+import software.amazon.awssdk.services.customerprofiles.model.PutProfileObjectTypeResponse;
 import software.amazon.awssdk.services.customerprofiles.model.ResourceNotFoundException;
 import software.amazon.awssdk.services.customerprofiles.model.StandardIdentifier;
 import software.amazon.awssdk.services.customerprofiles.model.ThrottlingException;
@@ -35,6 +39,7 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mockStatic;
 
 @ExtendWith(MockitoExtension.class)
 public class ReadHandlerTest {
@@ -61,6 +66,7 @@ public class ReadHandlerTest {
                             .fieldNames(Lists.newArrayList("sfdcContactId"))
                             .build()));
     private static final String TEMPLATE_ID = "templateId";
+    private static final String SOURCE_LAST_UPDATED_TIMESTAMP_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSX";
 
     private static ResourceModel model;
 
@@ -102,6 +108,7 @@ public class ReadHandlerTest {
                 .lastUpdatedAt(TIME)
                 .objectTypeName(OBJECT_TYPE_NAME)
                 .templateId(TEMPLATE_ID)
+                .sourceLastUpdatedTimestampFormat(SOURCE_LAST_UPDATED_TIMESTAMP_FORMAT)
                 .build();
 
         Mockito.when(proxy.injectCredentialsAndInvokeV2(any(), any()))
@@ -118,6 +125,78 @@ public class ReadHandlerTest {
         assertThat(response.getResourceModels()).isNull();
         assertThat(response.getMessage()).isNull();
         assertThat(response.getErrorCode()).isNull();
+    }
+
+    @Test
+    public void handleRequest_whenCreatedAtIsNull() {
+        final ReadHandler handler = new ReadHandler(customerProfilesClient);
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+            .desiredResourceState(model)
+            .build();
+
+        final GetProfileObjectTypeResponse getProfileObjectTypeResponse = GetProfileObjectTypeResponse.builder()
+            .allowProfileCreation(false)
+            .createdAt(null)
+            .description(DESCRIPTION)
+            .encryptionKey(KEY_ARN)
+            .expirationDays(EXPIRATION_DAYS)
+            .fields(fields)
+            .keys(keys)
+            .lastUpdatedAt(TIME)
+            .objectTypeName(OBJECT_TYPE_NAME)
+            .templateId(TEMPLATE_ID)
+            .sourceLastUpdatedTimestampFormat(SOURCE_LAST_UPDATED_TIMESTAMP_FORMAT)
+            .build();
+
+        Mockito.when(proxy.injectCredentialsAndInvokeV2(any(), any()))
+            .thenReturn(getProfileObjectTypeResponse);
+
+        final ProgressEvent<ResourceModel, CallbackContext> response
+            = handler.handleRequest(proxy, request, null, logger);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+        assertThat(response.getCallbackContext()).isNull();
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
+        assertThat(response.getResourceModel().getTemplateId()).isEqualTo(TEMPLATE_ID);
+        assertThat(response.getResourceModel().getCreatedAt()).isNull();
+        assertThat(response.getResourceModels()).isNull();
+        assertThat(response.getMessage()).isNull();
+        assertThat(response.getErrorCode()).isNull();
+    }
+
+    @Test
+    public void handleRequest_throwsCfnGeneralServiceExceptionWhenConvertingApiResponse() {
+        try (MockedStatic<Translator> translatorMockedStatic = mockStatic(Translator.class)) {
+            translatorMockedStatic.when(() -> Translator.mapKeysToList(any()))
+                .thenThrow(new NullPointerException());
+
+            final ReadHandler handler = new ReadHandler(customerProfilesClient);
+
+            final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(model)
+                .build();
+
+            final GetProfileObjectTypeResponse getProfileObjectTypeResponse = GetProfileObjectTypeResponse.builder()
+                .allowProfileCreation(false)
+                .createdAt(null)
+                .description(DESCRIPTION)
+                .encryptionKey(KEY_ARN)
+                .expirationDays(EXPIRATION_DAYS)
+                .fields(fields)
+                .keys(keys)
+                .lastUpdatedAt(TIME)
+                .objectTypeName(OBJECT_TYPE_NAME)
+                .templateId(TEMPLATE_ID)
+                .sourceLastUpdatedTimestampFormat(SOURCE_LAST_UPDATED_TIMESTAMP_FORMAT)
+                .build();
+
+            Mockito.when(proxy.injectCredentialsAndInvokeV2(any(), any()))
+                .thenReturn(getProfileObjectTypeResponse);
+
+            assertThrows(CfnGeneralServiceException.class, () -> handler.handleRequest(proxy, request, null, logger));
+        }
     }
 
     @Test
@@ -173,7 +252,7 @@ public class ReadHandlerTest {
 
     @Test
     public void handleRequest_otherException() {
-        final ReadHandler handler = new ReadHandler(customerProfilesClient);
+        final ReadHandler handler = new ReadHandler();
 
         ThrottlingException exc = ThrottlingException.builder()
                 .message("ThrottlingException")

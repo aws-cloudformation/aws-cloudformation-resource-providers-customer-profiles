@@ -2,6 +2,7 @@ package software.amazon.customerprofiles.objecttype;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import software.amazon.awssdk.services.customerprofiles.CustomerProfilesClient;
 import software.amazon.awssdk.services.customerprofiles.model.BadRequestException;
@@ -42,6 +43,7 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mockStatic;
 
 @ExtendWith(MockitoExtension.class)
 public class UpdateHandlerTest {
@@ -68,6 +70,7 @@ public class UpdateHandlerTest {
                             .fieldNames(Lists.newArrayList("sfdcContactId"))
                             .build()));
     private static final String TEMPLATE_ID = "templateId";
+    private static final String SOURCE_LAST_UPDATED_TIMESTAMP_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSX";
     private static final Map<String, String> PREVIOUS_TAGS = ImmutableMap.of("Key1", "Value1", "Key2", "Value2");
     private static final Map<String, String> DESIRED_TAGS = ImmutableMap.of("Key2", "Value4", "Key3", "Value3");
 
@@ -120,6 +123,7 @@ public class UpdateHandlerTest {
                 .objectTypeName(OBJECT_TYPE_NAME)
                 .tags(DESIRED_TAGS)
                 .templateId(TEMPLATE_ID)
+                .sourceLastUpdatedTimestampFormat(SOURCE_LAST_UPDATED_TIMESTAMP_FORMAT)
                 .build();
 
         Mockito.doReturn(GetProfileObjectTypeResponse.builder().build()).when(proxy).injectCredentialsAndInvokeV2(any(GetProfileObjectTypeRequest.class), any());
@@ -144,6 +148,90 @@ public class UpdateHandlerTest {
     }
 
     @Test
+    public void handleRequest_whenCreatedAtIsNull() {
+        final UpdateHandler handler = new UpdateHandler(customerProfilesClient);
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+            .desiredResourceState(model)
+            .previousResourceTags(PREVIOUS_TAGS)
+            .desiredResourceTags(DESIRED_TAGS)
+            .build();
+
+        final PutProfileObjectTypeResponse putProfileObjectTypeResponse = PutProfileObjectTypeResponse.builder()
+            .allowProfileCreation(false)
+            .createdAt(null)
+            .description(DESCRIPTION)
+            .encryptionKey(KEY_ARN)
+            .expirationDays(EXPIRATION_DAYS)
+            .fields(fields)
+            .keys(keys)
+            .lastUpdatedAt(TIME)
+            .objectTypeName(OBJECT_TYPE_NAME)
+            .tags(DESIRED_TAGS)
+            .templateId(TEMPLATE_ID)
+            .sourceLastUpdatedTimestampFormat(SOURCE_LAST_UPDATED_TIMESTAMP_FORMAT)
+            .build();
+
+        Mockito.doReturn(GetProfileObjectTypeResponse.builder().build()).when(proxy)
+            .injectCredentialsAndInvokeV2(any(GetProfileObjectTypeRequest.class), any());
+        Mockito.doReturn(UntagResourceResponse.builder().build()).when(proxy).injectCredentialsAndInvokeV2(any(UntagResourceRequest.class), any());
+        Mockito.doReturn(TagResourceResponse.builder().build()).when(proxy).injectCredentialsAndInvokeV2(any(TagResourceRequest.class), any());
+        Mockito.doReturn(putProfileObjectTypeResponse).when(proxy).injectCredentialsAndInvokeV2(any(PutProfileObjectTypeRequest.class), any());
+
+        final ProgressEvent<ResourceModel, CallbackContext> response
+            = handler.handleRequest(proxy, request, null, logger);
+
+        Mockito.verify(proxy).injectCredentialsAndInvokeV2(any(UntagResourceRequest.class), any());
+        Mockito.verify(proxy).injectCredentialsAndInvokeV2(any(TagResourceRequest.class), any());
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+        assertThat(response.getCallbackContext()).isNull();
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
+        assertThat(response.getResourceModel().getTags().get(0).getValue()).isEqualTo(
+            DESIRED_TAGS.get(response.getResourceModel().getTags().get(0).getKey()));
+        assertThat(response.getResourceModel().getCreatedAt()).isNull();
+        assertThat(response.getResourceModels()).isNull();
+        assertThat(response.getMessage()).isNull();
+        assertThat(response.getErrorCode()).isNull();
+    }
+
+    @Test
+    public void handleRequest_throwsCfnGeneralServiceExceptionWhenConvertingApiResponse() {
+        try (MockedStatic<Translator> translatorMockedStatic = mockStatic(Translator.class)) {
+            translatorMockedStatic.when(() -> Translator.mapKeysToList(any()))
+                .thenThrow(new NullPointerException());
+
+            final UpdateHandler handler = new UpdateHandler(customerProfilesClient);
+
+            final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(model)
+                .previousResourceTags(PREVIOUS_TAGS)
+                .desiredResourceTags(DESIRED_TAGS)
+                .build();
+
+            final PutProfileObjectTypeResponse putProfileObjectTypeResponse = PutProfileObjectTypeResponse.builder()
+                .allowProfileCreation(false)
+                .createdAt(TIME)
+                .description(DESCRIPTION)
+                .encryptionKey(KEY_ARN)
+                .expirationDays(EXPIRATION_DAYS)
+                .fields(fields)
+                .keys(keys)
+                .lastUpdatedAt(TIME)
+                .objectTypeName(OBJECT_TYPE_NAME)
+                .tags(DESIRED_TAGS)
+                .templateId(TEMPLATE_ID)
+                .sourceLastUpdatedTimestampFormat(SOURCE_LAST_UPDATED_TIMESTAMP_FORMAT)
+                .build();
+
+            Mockito.doReturn(GetProfileObjectTypeResponse.builder().build()).when(proxy).injectCredentialsAndInvokeV2(any(GetProfileObjectTypeRequest.class), any());
+            Mockito.doReturn(TagResourceResponse.builder().build()).when(proxy).injectCredentialsAndInvokeV2(any(TagResourceRequest.class), any());
+            Mockito.doReturn(putProfileObjectTypeResponse).when(proxy).injectCredentialsAndInvokeV2(any(PutProfileObjectTypeRequest.class), any());
+            assertThrows(CfnGeneralServiceException.class, () -> handler.handleRequest(proxy, request, null, logger));
+        }
+    }
+
+    @Test
     public void handleRequest_previousTagIsNull() {
         final UpdateHandler handler = new UpdateHandler(customerProfilesClient);
 
@@ -164,6 +252,7 @@ public class UpdateHandlerTest {
                 .objectTypeName(OBJECT_TYPE_NAME)
                 .tags(DESIRED_TAGS)
                 .templateId(TEMPLATE_ID)
+                .sourceLastUpdatedTimestampFormat(SOURCE_LAST_UPDATED_TIMESTAMP_FORMAT)
                 .build();
 
         Mockito.doReturn(GetProfileObjectTypeResponse.builder().build()).when(proxy).injectCredentialsAndInvokeV2(any(GetProfileObjectTypeRequest.class), any());
@@ -208,6 +297,7 @@ public class UpdateHandlerTest {
                 .objectTypeName(OBJECT_TYPE_NAME)
                 .tags(DESIRED_TAGS)
                 .templateId(TEMPLATE_ID)
+                .sourceLastUpdatedTimestampFormat(SOURCE_LAST_UPDATED_TIMESTAMP_FORMAT)
                 .build();
 
         Mockito.doReturn(GetProfileObjectTypeResponse.builder().build()).when(proxy).injectCredentialsAndInvokeV2(any(GetProfileObjectTypeRequest.class), any());
@@ -261,6 +351,7 @@ public class UpdateHandlerTest {
                 .lastUpdatedAt(TIME)
                 .objectTypeName(OBJECT_TYPE_NAME)
                 .templateId(TEMPLATE_ID)
+                .sourceLastUpdatedTimestampFormat(SOURCE_LAST_UPDATED_TIMESTAMP_FORMAT)
                 .build();
 
         Mockito.doReturn(GetProfileObjectTypeResponse.builder().build()).when(proxy).injectCredentialsAndInvokeV2(any(GetProfileObjectTypeRequest.class), any());
@@ -314,6 +405,7 @@ public class UpdateHandlerTest {
                 .lastUpdatedAt(TIME)
                 .objectTypeName(OBJECT_TYPE_NAME)
                 .templateId(TEMPLATE_ID)
+                .sourceLastUpdatedTimestampFormat(SOURCE_LAST_UPDATED_TIMESTAMP_FORMAT)
                 .build();
 
         Mockito.doReturn(GetProfileObjectTypeResponse.builder().build()).when(proxy).injectCredentialsAndInvokeV2(any(GetProfileObjectTypeRequest.class), any());
@@ -481,7 +573,7 @@ public class UpdateHandlerTest {
 
     @Test
     public void handleRequest_putProfileObjectType_otherException() {
-        final UpdateHandler handler = new UpdateHandler(customerProfilesClient);
+        final UpdateHandler handler = new UpdateHandler();
 
         ThrottlingException exc = ThrottlingException.builder()
                 .message("ThrottlingException")

@@ -1,12 +1,16 @@
 package software.amazon.customerprofiles.objecttype;
 
 import com.google.common.collect.Lists;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import software.amazon.awssdk.services.customerprofiles.CustomerProfilesClient;
 import software.amazon.awssdk.services.customerprofiles.model.BadRequestException;
+import software.amazon.awssdk.services.customerprofiles.model.GetProfileObjectTypeRequest;
 import software.amazon.awssdk.services.customerprofiles.model.InternalServerException;
 import software.amazon.awssdk.services.customerprofiles.model.ListProfileObjectTypeItem;
 import software.amazon.awssdk.services.customerprofiles.model.ListProfileObjectTypesResponse;
+import software.amazon.awssdk.services.customerprofiles.model.PutProfileObjectTypeRequest;
+import software.amazon.awssdk.services.customerprofiles.model.PutProfileObjectTypeResponse;
 import software.amazon.awssdk.services.customerprofiles.model.ResourceNotFoundException;
 import software.amazon.awssdk.services.customerprofiles.model.ThrottlingException;
 import software.amazon.cloudformation.exceptions.CfnGeneralServiceException;
@@ -29,6 +33,7 @@ import java.time.Instant;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mockStatic;
 
 @ExtendWith(MockitoExtension.class)
 public class ListHandlerTest {
@@ -106,6 +111,87 @@ public class ListHandlerTest {
     }
 
     @Test
+    public void handleRequest_whenCreatedAtIsNull() {
+        final ListHandler handler = new ListHandler(customerProfilesClient);
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+            .desiredResourceState(model)
+            .build();
+
+        ListProfileObjectTypeItem listProfileObjectTypeItem1 = ListProfileObjectTypeItem.builder()
+            .createdAt(null)
+            .description(DESCRIPTION_1)
+            .lastUpdatedAt(TIME)
+            .objectTypeName(OBJECT_TYPE_NAME_1)
+            .build();
+
+        ListProfileObjectTypeItem listProfileObjectTypeItem2 = ListProfileObjectTypeItem.builder()
+            .createdAt(TIME)
+            .description(DESCRIPTION_2)
+            .lastUpdatedAt(TIME)
+            .objectTypeName(OBJECT_TYPE_NAME_2)
+            .build();
+
+        final ListProfileObjectTypesResponse listProfileObjectTypesResponse = ListProfileObjectTypesResponse.builder()
+            .items(Lists.newArrayList(listProfileObjectTypeItem1, listProfileObjectTypeItem2))
+            .build();
+
+        Mockito.when(proxy.injectCredentialsAndInvokeV2(any(), any()))
+            .thenReturn(listProfileObjectTypesResponse);
+
+        final ProgressEvent<ResourceModel, CallbackContext> response =
+            handler.handleRequest(proxy, request, null, logger);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+        assertThat(response.getCallbackContext()).isNull();
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
+        assertThat(response.getResourceModel()).isNull();
+        assertThat(response.getResourceModels().get(0).getObjectTypeName()).isEqualTo(OBJECT_TYPE_NAME_1);
+        assertThat(response.getResourceModels().get(0).getCreatedAt()).isNull();
+        assertThat(response.getResourceModels().get(1).getObjectTypeName()).isEqualTo(OBJECT_TYPE_NAME_2);
+        assertThat(response.getMessage()).isNull();
+        assertThat(response.getErrorCode()).isNull();
+    }
+
+    @Test
+    public void handleRequest_throwsCfnGeneralServiceExceptionWhenConvertingApiResponse() {
+        try (MockedStatic<Translator> translatorMockedStatic = mockStatic(Translator.class)) {
+            translatorMockedStatic.when(() -> Translator.mapTagsToList(any()))
+                .thenThrow(new NullPointerException());
+
+            final ListHandler handler = new ListHandler(customerProfilesClient);
+
+            final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(model)
+                .build();
+
+            ListProfileObjectTypeItem listProfileObjectTypeItem1 = ListProfileObjectTypeItem.builder()
+                .createdAt(null)
+                .description(DESCRIPTION_1)
+                .lastUpdatedAt(TIME)
+                .objectTypeName(OBJECT_TYPE_NAME_1)
+                .build();
+
+            ListProfileObjectTypeItem listProfileObjectTypeItem2 = ListProfileObjectTypeItem.builder()
+                .createdAt(TIME)
+                .description(DESCRIPTION_2)
+                .lastUpdatedAt(TIME)
+                .objectTypeName(OBJECT_TYPE_NAME_2)
+                .build();
+
+            final ListProfileObjectTypesResponse listProfileObjectTypesResponse = ListProfileObjectTypesResponse.builder()
+                .items(Lists.newArrayList(listProfileObjectTypeItem1, listProfileObjectTypeItem2))
+                .build();
+
+            Mockito.when(proxy.injectCredentialsAndInvokeV2(any(), any()))
+                .thenReturn(listProfileObjectTypesResponse);
+
+            assertThrows(CfnGeneralServiceException.class, () -> handler.handleRequest(proxy, request, null, logger));
+        }
+    }
+
+    @Test
     public void handleRequest_BadRequestException() {
         final ListHandler handler = new ListHandler(customerProfilesClient);
 
@@ -158,7 +244,7 @@ public class ListHandlerTest {
 
     @Test
     public void handleRequest_otherException() {
-        final ListHandler handler = new ListHandler(customerProfilesClient);
+        final ListHandler handler = new ListHandler();
 
         ThrottlingException exc = ThrottlingException.builder()
                 .message("ThrottlingException")

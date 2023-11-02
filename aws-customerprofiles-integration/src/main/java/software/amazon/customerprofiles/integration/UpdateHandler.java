@@ -116,9 +116,9 @@ public class UpdateHandler extends BaseHandler<CallbackContext> {
         }
 
         final ResourceModel responseModel = ResourceModel.builder()
-                .createdAt(putIntegrationResponse.createdAt().toString())
+                .createdAt(putIntegrationResponse.createdAt() == null ? null : putIntegrationResponse.createdAt().toString())
                 .domainName(putIntegrationResponse.domainName())
-                .lastUpdatedAt(putIntegrationResponse.lastUpdatedAt().toString())
+                .lastUpdatedAt(putIntegrationResponse.lastUpdatedAt() == null ? null : putIntegrationResponse.lastUpdatedAt().toString())
                 .objectTypeName(putIntegrationResponse.objectTypeName())
                 .tags(Translator.mapTagsToList(putIntegrationResponse.tags()))
                 .uri(putIntegrationResponse.uri())

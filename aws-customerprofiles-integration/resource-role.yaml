@@ -30,8 +30,18 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
+                - "app-integrations:CreateEventIntegrationAssociation"
+                - "app-integrations:DeleteEventIntegrationAssociation"
+                - "app-integrations:GetEventIntegration"
+                - "app-integrations:ListEventIntegrationAssociations"
                 - "appflow:CreateFlow"
                 - "appflow:DeleteFlow"
+                - "events:DeleteRule"
+                - "events:ListTargetsByRule"
+                - "events:PutEvents"
+                - "events:PutRule"
+                - "events:PutTargets"
+                - "events:RemoveTargets"
                 - "profile:DeleteIntegration"
                 - "profile:GetIntegration"
                 - "profile:ListIntegrations"

@@ -59,9 +59,9 @@ public class ReadHandler extends BaseHandler<CallbackContext> {
         }
 
         final ResourceModel responseModel = ResourceModel.builder()
-                .createdAt(getIntegrationResponse.createdAt().toString())
+                .createdAt(getIntegrationResponse.createdAt() == null ? null : getIntegrationResponse.createdAt().toString())
                 .domainName(getIntegrationResponse.domainName())
-                .lastUpdatedAt(getIntegrationResponse.lastUpdatedAt().toString())
+                .lastUpdatedAt(getIntegrationResponse.createdAt() == null ? null : getIntegrationResponse.lastUpdatedAt().toString())
                 .objectTypeName(getIntegrationResponse.objectTypeName())
                 .tags(Translator.mapTagsToList(getIntegrationResponse.tags()))
                 .uri(getIntegrationResponse.uri())

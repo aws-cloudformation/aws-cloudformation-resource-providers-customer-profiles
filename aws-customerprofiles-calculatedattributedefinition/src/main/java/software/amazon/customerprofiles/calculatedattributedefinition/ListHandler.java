@@ -66,8 +66,8 @@ public class ListHandler extends BaseHandler<CallbackContext> {
                     .calculatedAttributeName(item.calculatedAttributeName())
                     .displayName(item.displayName())
                     .description(item.description())
-                    .createdAt(item.createdAt().toString())
-                    .lastUpdatedAt(item.lastUpdatedAt().toString())
+                    .createdAt(item.createdAt() == null ? null : item.createdAt().toString())
+                    .lastUpdatedAt(item.lastUpdatedAt() == null ? null : item.lastUpdatedAt().toString())
                     .tags(Translator.mapTagsToSet(item.tags()))
                     .build();
             responseModels.add(responseModel);

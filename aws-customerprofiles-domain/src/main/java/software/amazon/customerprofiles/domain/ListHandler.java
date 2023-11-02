@@ -61,9 +61,9 @@ public class ListHandler extends BaseHandler<CallbackContext> {
         List<ResourceModel> responseModels = new ArrayList<>();
         listDomainsResponse.items().forEach(res -> {
             ResourceModel responseModel = ResourceModel.builder()
-                    .createdAt(res.createdAt().toString())
+                    .createdAt(res.createdAt() == null ? null : res.createdAt().toString())
                     .domainName(res.domainName())
-                    .lastUpdatedAt(res.lastUpdatedAt().toString())
+                    .lastUpdatedAt(res.lastUpdatedAt() == null ? null : res.lastUpdatedAt().toString())
                     .tags(Translator.mapTagsToList(res.tags()))
                     .build();
             responseModels.add(responseModel);

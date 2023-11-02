@@ -137,7 +137,7 @@ public class DeleteHandlerTest {
 
     @Test
     public void handleRequest_otherException() {
-        final DeleteHandler handler = new DeleteHandler(customerProfilesClient);
+        final DeleteHandler handler = new DeleteHandler();
 
         ThrottlingException exc = ThrottlingException.builder()
                 .message("ThrottlingException")

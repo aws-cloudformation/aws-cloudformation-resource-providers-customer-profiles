@@ -62,23 +62,33 @@ public class ListHandler extends BaseHandler<CallbackContext> {
             throw new CfnGeneralServiceException(e);
         }
 
+        List<ResourceModel> responseModels = getResourceModels(listProfileObjectTypesRequest, listProfileObjectTypesResponse);
+
+        return ProgressEvent.<ResourceModel, CallbackContext>builder()
+            .resourceModels(responseModels)
+            .status(OperationStatus.SUCCESS)
+            .nextToken(listProfileObjectTypesRequest.nextToken())
+            .build();
+    }
+
+    private List<ResourceModel> getResourceModels(ListProfileObjectTypesRequest listProfileObjectTypesRequest,
+                                                  ListProfileObjectTypesResponse listProfileObjectTypesResponse) {
         List<ResourceModel> responseModels = new ArrayList<>();
-        listProfileObjectTypesResponse.items().forEach(res -> {
-            ResourceModel responseModel = ResourceModel.builder()
+        try {
+            listProfileObjectTypesResponse.items().forEach(res -> {
+                ResourceModel responseModel = ResourceModel.builder()
                     .domainName(listProfileObjectTypesRequest.domainName())
-                    .createdAt(res.createdAt().toString())
+                    .createdAt(res.createdAt() == null ? null : res.createdAt().toString())
                     .description(res.description())
-                    .lastUpdatedAt(res.lastUpdatedAt().toString())
+                    .lastUpdatedAt(res.lastUpdatedAt() == null ? null : res.lastUpdatedAt().toString())
                     .objectTypeName(res.objectTypeName())
                     .tags(Translator.mapTagsToList(res.tags()))
                     .build();
-            responseModels.add(responseModel);
-        });
-
-        return ProgressEvent.<ResourceModel, CallbackContext>builder()
-                .resourceModels(responseModels)
-                .status(OperationStatus.SUCCESS)
-                .nextToken(listProfileObjectTypesRequest.nextToken())
-                .build();
+                responseModels.add(responseModel);
+            });
+        } catch (Exception e) {
+            throw new CfnGeneralServiceException(e);
+        }
+        return responseModels;
     }
 }

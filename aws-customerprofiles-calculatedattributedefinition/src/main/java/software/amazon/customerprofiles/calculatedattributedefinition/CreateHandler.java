@@ -86,8 +86,8 @@ public class CreateHandler extends BaseHandler<CallbackContext> {
                 .attributeDetails(Translator.translateToInternalAttributeDetails(createDefinitionResponse.attributeDetails()))
                 .conditions(Translator.translateToInternalConditions(createDefinitionResponse.conditions()))
                 .statistic(createDefinitionResponse.statisticAsString())
-                .createdAt(createDefinitionResponse.createdAt().toString())
-                .lastUpdatedAt(createDefinitionResponse.lastUpdatedAt().toString())
+                .createdAt(createDefinitionResponse.createdAt() == null ? null : createDefinitionResponse.createdAt().toString())
+                .lastUpdatedAt(createDefinitionResponse.lastUpdatedAt() == null ? null : createDefinitionResponse.lastUpdatedAt().toString())
                 .tags(Translator.mapTagsToSet(createDefinitionResponse.tags()))
                 .build();
 

@@ -60,8 +60,8 @@ public class ReadHandler extends BaseHandler<CallbackContext> {
             .eventStreamName(requestModel.getEventStreamName())
             .uri(getEventStreamResponse.destinationDetails().uri())
             .eventStreamArn(getEventStreamResponse.eventStreamArn())
-            .createdAt(getEventStreamResponse.createdAt().toString())
-            .state(getEventStreamResponse.state().toString())
+            .createdAt(getEventStreamResponse.createdAt() == null ? null : getEventStreamResponse.createdAt().toString())
+            .state(getEventStreamResponse.state() == null ? null : getEventStreamResponse.state().toString())
             .destinationDetails(Translator.translateToInternalDestinationDetails(getEventStreamResponse.destinationDetails()))
             .tags(Translator.mapTagsToSet(getEventStreamResponse.tags()))
             .build();
