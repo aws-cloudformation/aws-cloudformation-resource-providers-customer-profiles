@@ -16,8 +16,6 @@ import static software.amazon.customerprofiles.integration.translators.TestUtils
 
 public class TaskTranslatorTest {
 
-    TaskTranslator translator = new TaskTranslator();
-
     private static Stream<String> getConnectors() {
         return Stream.of("Salesforce", "S3", "Zendesk", "Marketo", "ServiceNow");
     }

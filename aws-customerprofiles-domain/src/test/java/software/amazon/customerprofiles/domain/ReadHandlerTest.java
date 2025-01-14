@@ -1,7 +1,21 @@
 package software.amazon.customerprofiles.domain;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+
 import com.google.common.collect.Lists;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 import software.amazon.awssdk.services.customerprofiles.CustomerProfilesClient;
 import software.amazon.awssdk.services.customerprofiles.model.BadRequestException;
 import software.amazon.awssdk.services.customerprofiles.model.DomainStats;
@@ -20,21 +34,6 @@ import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
 
 @ExtendWith(MockitoExtension.class)
 public class ReadHandlerTest {
@@ -50,7 +49,7 @@ public class ReadHandlerTest {
     private static final String dayOfTheWeek = "MONDAY";
     private static final String time = "10:00";
     private static final String s3KeyName = "domain-matching-rulebasedmatching-testing";
-    private static ResourceModel model;
+    private ResourceModel model;
 
     @Mock
     private AmazonWebServicesClientProxy proxy;
@@ -58,8 +57,6 @@ public class ReadHandlerTest {
     private CustomerProfilesClient customerProfilesClient;
     @Mock
     private Logger logger;
-    @Mock
-    private ClientBuilder clientBuilder;
     private MatchingResponse matchingResponse;
     private RuleBasedMatchingResponse ruleBasedMatchingResponse;
 
@@ -68,7 +65,6 @@ public class ReadHandlerTest {
         proxy = Mockito.mock(AmazonWebServicesClientProxy.class);
         customerProfilesClient = Mockito.mock(CustomerProfilesClient.class);
         logger = Mockito.mock(Logger.class);
-        clientBuilder = Mockito.mock(ClientBuilder.class);
         List<String> RULE_FIRSTNAME_LASTNAME = Lists.newArrayList("FIRST_NAME", "LAST_NAME");
         List<List<String>> matchingAttributesList = new ArrayList<>();
         matchingAttributesList.add(RULE_FIRSTNAME_LASTNAME);

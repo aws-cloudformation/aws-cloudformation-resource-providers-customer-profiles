@@ -4,10 +4,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 
+import com.google.common.collect.ImmutableMap;
 import java.time.Instant;
 import java.util.Map;
-
-import com.google.common.collect.ImmutableMap;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -42,7 +41,7 @@ public class ReadHandlerTest {
     private static final String EVENT_STREAM_ARN = "arn:aws:profiles:us-east-1:123456789012:domains/domainName/event-stream/eventStreamName";
     private static final String KINESIS_DATA_STREAM_ARN = "arn:aws:kinesis:us-east-1:123456789012:stream/testStream";
     private static final Map<String, String> DESIRED_TAGS = ImmutableMap.of("key1", "value1", "key2", "value2");
-    private static ResourceModel model;
+    private ResourceModel model;
     @Mock
     private AmazonWebServicesClientProxy proxy;
     @Mock

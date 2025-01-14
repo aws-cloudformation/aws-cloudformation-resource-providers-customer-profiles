@@ -75,7 +75,7 @@ public class CreateHandler extends BaseHandler<CallbackContext> {
         } catch (ResourceNotFoundException e) {
             throw new CfnNotFoundException(e);
         } catch (Exception e) {
-            throw new CfnGeneralServiceException(e);
+            throw Translator.translateToCfnException(e);
         }
 
         final ResourceModel responseModel = ResourceModel.builder()

@@ -1,5 +1,9 @@
 package software.amazon.customerprofiles.calculatedattributedefinition;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -7,6 +11,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import software.amazon.awssdk.services.customerprofiles.CustomerProfilesClient;
+import software.amazon.awssdk.services.customerprofiles.model.AccessDeniedException;
 import software.amazon.awssdk.services.customerprofiles.model.BadRequestException;
 import software.amazon.awssdk.services.customerprofiles.model.DeleteCalculatedAttributeDefinitionRequest;
 import software.amazon.awssdk.services.customerprofiles.model.DeleteCalculatedAttributeDefinitionResponse;
@@ -17,15 +22,12 @@ import software.amazon.cloudformation.exceptions.CfnGeneralServiceException;
 import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
 import software.amazon.cloudformation.exceptions.CfnNotFoundException;
 import software.amazon.cloudformation.exceptions.CfnServiceInternalErrorException;
+import software.amazon.cloudformation.exceptions.CfnUnauthorizedTaggingOperationException;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
 
 @ExtendWith(MockitoExtension.class)
 public class DeleteHandlerTest {
@@ -39,7 +41,7 @@ public class DeleteHandlerTest {
     @Mock
     private Logger logger;
 
-    private static ResourceModel model;
+    private ResourceModel model;
 
     @BeforeEach
     public void setup() {
@@ -115,7 +117,8 @@ public class DeleteHandlerTest {
     @Test
     public void handleRequest_andOtherException() {
         final DeleteHandler handler = new DeleteHandler();
-        ThrottlingException exception = ThrottlingException.builder().build();
+        ThrottlingException exception = Mockito.mock(ThrottlingException.class);
+        Mockito.when(exception.getMessage()).thenReturn("throttling");
         Mockito.doThrow(exception).when(proxy).injectCredentialsAndInvokeV2(
                 any(DeleteCalculatedAttributeDefinitionRequest.class), any());
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
@@ -123,5 +126,19 @@ public class DeleteHandlerTest {
                 .build();
 
         assertThrows(CfnGeneralServiceException.class, () -> handler.handleRequest(proxy, request, null, logger));
+    }
+
+    @Test
+    public void handleRequest_andTaggingExceptionMessage_thenThrowCfnUnauthorizedTaggingOperationException() {
+        final DeleteHandler handler = new DeleteHandler();
+        AccessDeniedException exception = Mockito.mock(AccessDeniedException.class);
+        Mockito.when(exception.getMessage()).thenReturn("is not authorized to perform profile:TagResource");
+        Mockito.doThrow(exception).when(proxy).injectCredentialsAndInvokeV2(
+                any(DeleteCalculatedAttributeDefinitionRequest.class), any());
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(model)
+                .build();
+
+        assertThrows(CfnUnauthorizedTaggingOperationException.class, () -> handler.handleRequest(proxy, request, null, logger));
     }
 }

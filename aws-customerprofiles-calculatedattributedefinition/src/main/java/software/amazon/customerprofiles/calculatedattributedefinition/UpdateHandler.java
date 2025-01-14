@@ -79,7 +79,11 @@ public class UpdateHandler extends BaseHandler<CallbackContext> {
                         .resourceArn(Translator.toCalculatedAttributeDefinitionArn(request))
                         .tagKeys(tagsToRemove)
                         .build();
-                proxy.injectCredentialsAndInvokeV2(untagResourceRequest, client::untagResource);
+                try {
+                    proxy.injectCredentialsAndInvokeV2(untagResourceRequest, client::untagResource);
+                } catch (Exception e) {
+                    throw Translator.translateToCfnException(e);
+                }
             }
         }
         if (request.getDesiredResourceTags() != null && !request.getDesiredResourceTags().isEmpty()) {
@@ -88,7 +92,11 @@ public class UpdateHandler extends BaseHandler<CallbackContext> {
                     .resourceArn(Translator.toCalculatedAttributeDefinitionArn(request))
                     .tags(resourceTags)
                     .build();
-            proxy.injectCredentialsAndInvokeV2(tagResourceRequest, client::tagResource);
+            try {
+                proxy.injectCredentialsAndInvokeV2(tagResourceRequest, client::tagResource);
+            } catch (Exception e) {
+                throw Translator.translateToCfnException(e);
+            }
         }
 
         final UpdateCalculatedAttributeDefinitionRequest updateDefinitionRequest = UpdateCalculatedAttributeDefinitionRequest.builder()
@@ -111,7 +119,7 @@ public class UpdateHandler extends BaseHandler<CallbackContext> {
         } catch (ResourceNotFoundException e) {
             throw new CfnNotFoundException(e);
         } catch (Exception e) {
-            throw new CfnGeneralServiceException(e);
+            throw Translator.translateToCfnException(e);
         }
 
         final ResourceModel responseModel = ResourceModel.builder()

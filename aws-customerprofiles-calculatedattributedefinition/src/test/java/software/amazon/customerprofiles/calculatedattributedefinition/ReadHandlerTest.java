@@ -1,5 +1,10 @@
 package software.amazon.customerprofiles.calculatedattributedefinition;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+
+import java.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,12 +34,6 @@ import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
-import java.time.Instant;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-
 @ExtendWith(MockitoExtension.class)
 public class ReadHandlerTest {
     private static final Instant TIME = Instant.now();
@@ -53,7 +52,7 @@ public class ReadHandlerTest {
     @Mock
     private Logger logger;
 
-    private static ResourceModel model;
+    private ResourceModel model;
 
     @BeforeEach
     public void setup() {

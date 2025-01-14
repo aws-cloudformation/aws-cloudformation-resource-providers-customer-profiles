@@ -6,9 +6,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import software.amazon.awssdk.services.customerprofiles.model.FlowDefinition;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static software.amazon.customerprofiles.integration.translators.TestUtils.getValidFlowDefinition;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 @ExtendWith(MockitoExtension.class)
 public class TranslatorTest {
@@ -43,5 +48,13 @@ public class TranslatorTest {
         assertNotNull(flowDefinition.sourceFlowConfig());
         assertNotNull(flowDefinition.tasks());
         assertNotNull(flowDefinition.triggerConfig());
+    }
+
+    @Test
+    public void testGetValidEventTriggerNames() {
+        assertNull(Translator.getValidEventTriggerNames(null));
+        assertNull(Translator.getValidEventTriggerNames(new ArrayList<>()));
+        List<String> eventTriggerNames = new ArrayList<>(Collections.singleton("EventTriggerName"));
+        assertEquals(eventTriggerNames, Translator.getValidEventTriggerNames(eventTriggerNames));
     }
 }

@@ -2,7 +2,7 @@ version: 0.2
 phases:
   install:
     runtime-versions:
-        java: openjdk8
+        java: openjdk17
         python: 3.7
     commands:
       -  pip install --upgrade pip
@@ -26,9 +26,15 @@ phases:
       - mvn clean verify --no-transfer-progress
       - cd "$CODEBUILD_SRC_DIR/aws-customerprofiles-eventstream"
       - mvn clean verify --no-transfer-progress
+      - cd "$CODEBUILD_SRC_DIR/aws-customerprofiles-segmentdefinition"
+      - mvn clean verify --no-transfer-progress
+      - cd "$CODEBUILD_SRC_DIR/aws-customerprofiles-eventtrigger"
+      - mvn clean verify --no-transfer-progress
     finally:
       - cat "$CODEBUILD_SRC_DIR/aws-customerprofiles-domain/rpdk.log"
       - cat "$CODEBUILD_SRC_DIR/aws-customerprofiles-integration/rpdk.log"
       - cat "$CODEBUILD_SRC_DIR/aws-customerprofiles-objecttype/rpdk.log"
       - cat "$CODEBUILD_SRC_DIR/aws-customerprofiles-calculatedattributedefinition/rpdk.log"
       - cat "$CODEBUILD_SRC_DIR/aws-customerprofiles-eventstream/rpdk.log"
+      - cat "$CODEBUILD_SRC_DIR/aws-customerprofiles-segmentdefinition/rpdk.log"
+      - cat "$CODEBUILD_SRC_DIR/aws-customerprofiles-eventtrigger/rpdk.log"

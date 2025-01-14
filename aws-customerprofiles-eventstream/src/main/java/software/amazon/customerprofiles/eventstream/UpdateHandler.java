@@ -65,7 +65,11 @@ public class UpdateHandler extends BaseHandler<CallbackContext> {
                     .resourceArn(Translator.toEventStreamArn(request))
                     .tagKeys(tagsToRemove)
                     .build();
-                proxy.injectCredentialsAndInvokeV2(untagResourceRequest, client::untagResource);
+                try {
+                    proxy.injectCredentialsAndInvokeV2(untagResourceRequest, client::untagResource);
+                } catch (Exception e) {
+                    throw Translator.translateToCfnException(e);
+                }
             }
         }
 
@@ -75,7 +79,11 @@ public class UpdateHandler extends BaseHandler<CallbackContext> {
                 .resourceArn(Translator.toEventStreamArn(request))
                 .tags(resourceTags)
                 .build();
-            proxy.injectCredentialsAndInvokeV2(tagResourceRequest, client::tagResource);
+            try {
+                proxy.injectCredentialsAndInvokeV2(tagResourceRequest, client::tagResource);
+            } catch (Exception e) {
+                throw Translator.translateToCfnException(e);
+            }
         }
 
         return new ReadHandler().handleRequest(proxy, request, callbackContext, logger);

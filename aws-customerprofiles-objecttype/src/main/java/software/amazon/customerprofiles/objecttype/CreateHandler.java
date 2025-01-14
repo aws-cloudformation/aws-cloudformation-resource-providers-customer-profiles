@@ -1,5 +1,6 @@
 package software.amazon.customerprofiles.objecttype;
 
+import java.util.Map;
 import lombok.NoArgsConstructor;
 import software.amazon.awssdk.services.customerprofiles.CustomerProfilesClient;
 import software.amazon.awssdk.services.customerprofiles.model.BadRequestException;
@@ -18,8 +19,6 @@ import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
-
-import java.util.Map;
 
 @NoArgsConstructor
 public class CreateHandler extends BaseHandler<CallbackContext> {
@@ -89,7 +88,7 @@ public class CreateHandler extends BaseHandler<CallbackContext> {
             } catch (InternalServerException e) {
                 throw new CfnServiceInternalErrorException(e);
             } catch (Exception e) {
-                throw new CfnGeneralServiceException(e);
+                throw Translator.translateToCfnException(e);
             }
 
             final ResourceModel responseModel = getResourceModel(model, putProfileObjectTypeResponse);

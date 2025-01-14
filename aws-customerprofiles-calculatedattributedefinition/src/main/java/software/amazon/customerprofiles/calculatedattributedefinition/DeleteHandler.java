@@ -4,7 +4,6 @@ import lombok.NoArgsConstructor;
 import software.amazon.awssdk.services.customerprofiles.CustomerProfilesClient;
 import software.amazon.awssdk.services.customerprofiles.model.BadRequestException;
 import software.amazon.awssdk.services.customerprofiles.model.DeleteCalculatedAttributeDefinitionRequest;
-import software.amazon.awssdk.services.customerprofiles.model.DeleteCalculatedAttributeDefinitionResponse;
 import software.amazon.awssdk.services.customerprofiles.model.InternalServerException;
 import software.amazon.awssdk.services.customerprofiles.model.ResourceNotFoundException;
 import software.amazon.cloudformation.exceptions.CfnGeneralServiceException;
@@ -41,10 +40,9 @@ public class DeleteHandler extends BaseHandler<CallbackContext> {
                 .domainName(requestModel.getDomainName())
                 .calculatedAttributeName(requestModel.getCalculatedAttributeName())
                 .build();
-        final DeleteCalculatedAttributeDefinitionResponse deleteDefinitionResponse;
 
         try {
-            deleteDefinitionResponse = proxy.injectCredentialsAndInvokeV2(deleteDefinitionRequest, client::deleteCalculatedAttributeDefinition);
+            proxy.injectCredentialsAndInvokeV2(deleteDefinitionRequest, client::deleteCalculatedAttributeDefinition);
             logger.log(String.format("Deleted calculated attribute definition with domainName = %s, calculatedAttributeName = %s",
                     requestModel.getDomainName(), requestModel.getCalculatedAttributeName()));
         } catch (BadRequestException e) {
@@ -54,7 +52,7 @@ public class DeleteHandler extends BaseHandler<CallbackContext> {
         } catch (ResourceNotFoundException e) {
             throw new CfnNotFoundException(e);
         } catch (Exception e) {
-            throw new CfnGeneralServiceException(e);
+            throw Translator.translateToCfnException(e);
         }
 
         return ProgressEvent.<ResourceModel, CallbackContext>builder()

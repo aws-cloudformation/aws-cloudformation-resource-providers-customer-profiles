@@ -68,7 +68,7 @@ public class ReadHandlerTest {
     private static final String TEMPLATE_ID = "templateId";
     private static final String SOURCE_LAST_UPDATED_TIMESTAMP_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSX";
 
-    private static ResourceModel model;
+    private ResourceModel model;
 
     @Mock
     private AmazonWebServicesClientProxy proxy;

@@ -12,12 +12,13 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: software.amazon.customerprofiles.eventstream.HandlerWrapper::handleRequest
-      Runtime: java8
+      Runtime: java17
       CodeUri: ./target/aws-customerprofiles-eventstream-1.0.jar
 
   TestEntrypoint:
     Type: AWS::Serverless::Function
     Properties:
       Handler: software.amazon.customerprofiles.eventstream.HandlerWrapper::testEntrypoint
-      Runtime: java8
+      Runtime: java17
       CodeUri: ./target/aws-customerprofiles-eventstream-1.0.jar
+

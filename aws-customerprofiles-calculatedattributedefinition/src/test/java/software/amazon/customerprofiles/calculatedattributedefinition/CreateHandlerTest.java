@@ -1,6 +1,14 @@
 package software.amazon.customerprofiles.calculatedattributedefinition;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static software.amazon.customerprofiles.calculatedattributedefinition.CreateHandler.DEFINITION_ALREADY_EXISTS_ERROR_MESSAGE;
+
 import com.google.common.collect.ImmutableMap;
+import java.time.Instant;
+import java.util.Collections;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -8,6 +16,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import software.amazon.awssdk.services.customerprofiles.CustomerProfilesClient;
+import software.amazon.awssdk.services.customerprofiles.model.AccessDeniedException;
 import software.amazon.awssdk.services.customerprofiles.model.BadRequestException;
 import software.amazon.awssdk.services.customerprofiles.model.CreateCalculatedAttributeDefinitionRequest;
 import software.amazon.awssdk.services.customerprofiles.model.CreateCalculatedAttributeDefinitionResponse;
@@ -22,20 +31,12 @@ import software.amazon.cloudformation.exceptions.CfnGeneralServiceException;
 import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
 import software.amazon.cloudformation.exceptions.CfnNotFoundException;
 import software.amazon.cloudformation.exceptions.CfnServiceInternalErrorException;
+import software.amazon.cloudformation.exceptions.CfnUnauthorizedTaggingOperationException;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
-
-import java.time.Instant;
-import java.util.Collections;
-import java.util.Map;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static software.amazon.customerprofiles.calculatedattributedefinition.CreateHandler.DEFINITION_ALREADY_EXISTS_ERROR_MESSAGE;
 
 @ExtendWith(MockitoExtension.class)
 public class CreateHandlerTest {
@@ -57,9 +58,9 @@ public class CreateHandlerTest {
     @Mock
     private Logger logger;
 
-    private static ResourceModel model;
-    private static AttributeDetails attributeDetails;
-    private static Conditions conditions;
+    private ResourceModel model;
+    private AttributeDetails attributeDetails;
+    private Conditions conditions;
 
     @BeforeEach
     public void setup() {
@@ -250,7 +251,8 @@ public class CreateHandlerTest {
     @Test
     public void handleRequest_andOtherException() {
         final CreateHandler handler = new CreateHandler();
-        ThrottlingException exception = ThrottlingException.builder().build();
+        ThrottlingException exception = Mockito.mock(ThrottlingException.class);
+        Mockito.when(exception.getMessage()).thenReturn("throttling");
         Mockito.doThrow(exception).when(proxy).injectCredentialsAndInvokeV2(
                 any(CreateCalculatedAttributeDefinitionRequest.class), any());
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
@@ -258,6 +260,20 @@ public class CreateHandlerTest {
                 .build();
 
         assertThrows(CfnGeneralServiceException.class, () -> handler.handleRequest(proxy, request, null, logger));
+    }
+
+    @Test
+    public void handleRequest_andTaggingExceptionMessage_thenThrowCfnUnauthorizedTaggingOperationException() {
+        final CreateHandler handler = new CreateHandler();
+        AccessDeniedException exception = Mockito.mock(AccessDeniedException.class);
+        Mockito.when(exception.getMessage()).thenReturn("is not authorized to perform profile:TagResource");
+        Mockito.doThrow(exception).when(proxy).injectCredentialsAndInvokeV2(
+                any(CreateCalculatedAttributeDefinitionRequest.class), any());
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(model)
+                .build();
+
+        assertThrows(CfnUnauthorizedTaggingOperationException.class, () -> handler.handleRequest(proxy, request, null, logger));
     }
 
     private CreateCalculatedAttributeDefinitionResponse buildCreateDefinitionResponse(Map<String, String> tags) {

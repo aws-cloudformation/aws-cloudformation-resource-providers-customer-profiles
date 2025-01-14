@@ -66,6 +66,7 @@ public class ReadHandler extends BaseHandler<CallbackContext> {
                 .tags(Translator.mapTagsToList(getIntegrationResponse.tags()))
                 .uri(getIntegrationResponse.uri())
                 .objectTypeNames(Translator.mapObjectTypeNamesToList(getIntegrationResponse.objectTypeNames()))
+                .eventTriggerNames(Translator.getValidEventTriggerNames(getIntegrationResponse.eventTriggerNames()))
                 .build();
 
         return ProgressEvent.defaultSuccessHandler(responseModel);

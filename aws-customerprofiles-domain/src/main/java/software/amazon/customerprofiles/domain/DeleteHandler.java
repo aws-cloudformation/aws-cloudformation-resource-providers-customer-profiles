@@ -1,5 +1,7 @@
 package software.amazon.customerprofiles.domain;
 
+import static software.amazon.customerprofiles.domain.Translator.translateToCfnException;
+
 import lombok.NoArgsConstructor;
 import software.amazon.awssdk.services.customerprofiles.CustomerProfilesClient;
 import software.amazon.awssdk.services.customerprofiles.model.BadRequestException;
@@ -7,7 +9,6 @@ import software.amazon.awssdk.services.customerprofiles.model.DeleteDomainReques
 import software.amazon.awssdk.services.customerprofiles.model.DeleteDomainResponse;
 import software.amazon.awssdk.services.customerprofiles.model.InternalServerException;
 import software.amazon.awssdk.services.customerprofiles.model.ResourceNotFoundException;
-import software.amazon.cloudformation.exceptions.CfnGeneralServiceException;
 import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
 import software.amazon.cloudformation.exceptions.CfnNotFoundException;
 import software.amazon.cloudformation.exceptions.CfnServiceInternalErrorException;
@@ -55,7 +56,7 @@ public class DeleteHandler extends BaseHandler<CallbackContext> {
         } catch (ResourceNotFoundException e) {
             throw new CfnNotFoundException(e);
         } catch (Exception e) {
-            throw new CfnGeneralServiceException(e);
+            throw translateToCfnException(e);
         }
 
         return ProgressEvent.<ResourceModel, CallbackContext>builder()
