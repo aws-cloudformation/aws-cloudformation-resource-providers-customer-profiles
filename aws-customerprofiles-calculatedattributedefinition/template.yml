@@ -12,13 +12,13 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: software.amazon.customerprofiles.calculatedattributedefinition.HandlerWrapper::handleRequest
-      Runtime: java17
+      Runtime: java8
       CodeUri: ./target/aws-customerprofiles-calculatedattributedefinition-1.0.jar
 
   TestEntrypoint:
     Type: AWS::Serverless::Function
     Properties:
       Handler: software.amazon.customerprofiles.calculatedattributedefinition.HandlerWrapper::testEntrypoint
-      Runtime: java17
+      Runtime: java8
       CodeUri: ./target/aws-customerprofiles-calculatedattributedefinition-1.0.jar
 

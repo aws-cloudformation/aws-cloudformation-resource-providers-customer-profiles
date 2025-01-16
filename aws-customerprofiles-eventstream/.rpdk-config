@@ -2,7 +2,7 @@
     "artifact_type": "RESOURCE",
     "typeName": "AWS::CustomerProfiles::EventStream",
     "language": "java",
-    "runtime": "java17",
+    "runtime": "java8",
     "entrypoint": "software.amazon.customerprofiles.eventstream.HandlerWrapper::handleRequest",
     "testEntrypoint": "software.amazon.customerprofiles.eventstream.HandlerWrapper::testEntrypoint",
     "settings": {

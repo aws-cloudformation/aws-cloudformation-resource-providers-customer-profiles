@@ -2,7 +2,7 @@
     "artifact_type": "RESOURCE",
     "typeName": "AWS::CustomerProfiles::SegmentDefinition",
     "language": "java",
-    "runtime": "java17",
+    "runtime": "java8",
     "entrypoint": "software.amazon.customerprofiles.segmentdefinition.HandlerWrapper::handleRequest",
     "testEntrypoint": "software.amazon.customerprofiles.segmentdefinition.HandlerWrapper::testEntrypoint",
     "settings": {
