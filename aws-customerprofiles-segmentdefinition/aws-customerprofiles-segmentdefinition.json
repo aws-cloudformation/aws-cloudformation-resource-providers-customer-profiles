@@ -478,11 +478,11 @@
       "description": "An array that defines the set of segment criteria to evaluate when handling segment groups for the segment.",
       "$ref": "#/definitions/SegmentGroup"
     },
-    "SegmentDefinitionArn" : {
+    "SegmentDefinitionArn": {
       "description": "The Amazon Resource Name (ARN) of the segment definition.",
-      "type" : "string",
-      "maxLength" : 255,
-      "minLength" : 1
+      "type": "string",
+      "maxLength": 255,
+      "minLength": 1
     },
     "Tags": {
       "description": "The tags used to organize, track, or control access for this resource.",
@@ -562,7 +562,11 @@
     "tagUpdatable": true,
     "cloudFormationSystemTags": true,
     "tagProperty": "/properties/Tags",
-    "permissions": ["profile:TagResource", "profile:UntagResource", "profile:ListTagsForResource"]
+    "permissions": [
+      "profile:TagResource",
+      "profile:UntagResource",
+      "profile:ListTagsForResource"
+    ]
   },
   "additionalProperties": false
 }

@@ -21,4 +21,3 @@ Resources:
       Handler: software.amazon.customerprofiles.eventstream.HandlerWrapper::testEntrypoint
       Runtime: java8
       CodeUri: ./target/aws-customerprofiles-eventstream-1.0.jar
-

@@ -166,4 +166,3 @@ The timestamp of when the event trigger was created.
 #### LastUpdatedAt
 
 The timestamp of when the event trigger was most recently updated.
-

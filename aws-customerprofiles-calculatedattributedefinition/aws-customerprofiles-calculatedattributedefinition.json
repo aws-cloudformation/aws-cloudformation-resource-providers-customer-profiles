@@ -265,7 +265,11 @@
     "tagUpdatable": true,
     "cloudFormationSystemTags": true,
     "tagProperty": "/properties/Tags",
-    "permissions": ["profile:TagResource", "profile:UntagResource", "profile:ListTagsForResource"]
+    "permissions": [
+      "profile:TagResource",
+      "profile:UntagResource",
+      "profile:ListTagsForResource"
+    ]
   },
   "createOnlyProperties": [
     "/properties/DomainName",

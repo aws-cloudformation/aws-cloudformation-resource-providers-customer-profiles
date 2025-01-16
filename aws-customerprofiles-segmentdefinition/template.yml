@@ -21,4 +21,3 @@ Resources:
       Handler: software.amazon.customerprofiles.segmentdefinition.HandlerWrapper::testEntrypoint
       Runtime: java8
       CodeUri: ./target/aws-customerprofiles-segmentdefinition-1.0.jar
-
