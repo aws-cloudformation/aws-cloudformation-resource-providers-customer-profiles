@@ -3,6 +3,7 @@ package software.amazon.customerprofiles.domain;
 import static software.amazon.customerprofiles.domain.Translator.buildServiceMatching;
 import static software.amazon.customerprofiles.domain.Translator.buildServiceRuleBasedMatching;
 import static software.amazon.customerprofiles.domain.Translator.mapTagsToList;
+import static software.amazon.customerprofiles.domain.Translator.translateToCfnException;
 import static software.amazon.customerprofiles.domain.Translator.translateToInternalMatchingResponse;
 import static software.amazon.customerprofiles.domain.Translator.translateToInternalRuleBasedMatchingResponse;
 
@@ -85,7 +86,11 @@ public class UpdateHandler extends BaseHandler<CallbackContext> {
                         .resourceArn(Translator.toDomainARN(request))
                         .tagKeys(tagsToRemove)
                         .build();
-                proxy.injectCredentialsAndInvokeV2(untagResourceRequest, client::untagResource);
+                try {
+                    proxy.injectCredentialsAndInvokeV2(untagResourceRequest, client::untagResource);
+                } catch (Exception e) {
+                    throw translateToCfnException(e);
+                }
             }
         }
 
@@ -95,7 +100,11 @@ public class UpdateHandler extends BaseHandler<CallbackContext> {
                     .resourceArn(Translator.toDomainARN(request))
                     .tags(resourceTag)
                     .build();
-            proxy.injectCredentialsAndInvokeV2(tagResourceRequest, client::tagResource);
+            try {
+                proxy.injectCredentialsAndInvokeV2(tagResourceRequest, client::tagResource);
+            } catch (Exception e) {
+                throw translateToCfnException(e);
+            }
         }
         final UpdateDomainRequest updateDomainRequest = UpdateDomainRequest.builder()
             .domainName(model.getDomainName())
@@ -118,7 +127,7 @@ public class UpdateHandler extends BaseHandler<CallbackContext> {
         } catch (ResourceNotFoundException e) {
             throw new CfnNotFoundException(e);
         } catch (Exception e) {
-            throw new CfnGeneralServiceException(e);
+            throw translateToCfnException(e);
         }
 
         final ResourceModel responseModel = ResourceModel.builder()

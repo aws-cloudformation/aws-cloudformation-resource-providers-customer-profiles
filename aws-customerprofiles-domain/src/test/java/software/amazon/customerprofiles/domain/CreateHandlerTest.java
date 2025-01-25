@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import org.mockito.Mockito;
 import software.amazon.awssdk.services.customerprofiles.CustomerProfilesClient;
+import software.amazon.awssdk.services.customerprofiles.model.AccessDeniedException;
 import software.amazon.awssdk.services.customerprofiles.model.BadRequestException;
 import software.amazon.awssdk.services.customerprofiles.model.CreateDomainResponse;
 import software.amazon.awssdk.services.customerprofiles.model.InternalServerException;
@@ -16,6 +17,7 @@ import software.amazon.cloudformation.exceptions.CfnGeneralServiceException;
 import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
 import software.amazon.cloudformation.exceptions.CfnNotFoundException;
 import software.amazon.cloudformation.exceptions.CfnServiceInternalErrorException;
+import software.amazon.cloudformation.exceptions.CfnUnauthorizedTaggingOperationException;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.OperationStatus;
@@ -30,6 +32,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -50,8 +53,10 @@ public class CreateHandlerTest {
     private static final String dayOfTheWeek = "MONDAY";
     private static final String time = "10:00";
     private static final String s3KeyName = "domain-matching-rulebasedmatching-testing";
-    private static ResourceModel model;
-    private static CreateDomainResponse result;
+    private static final Map<String, String> PREVIOUS_TAGS = ImmutableMap.of("key1", "value1", "key2", "value2");
+    private static final Map<String, String> DESIRED_TAGS = ImmutableMap.of("key2", "newValue2", "key3", "value3");
+    private ResourceModel model;
+    private CreateDomainResponse result;
 
     @Mock
     private AmazonWebServicesClientProxy proxy;
@@ -339,5 +344,22 @@ public class CreateHandlerTest {
                 .thenThrow(exc);
 
         assertThrows(CfnGeneralServiceException.class, () -> handler.handleRequest(proxy, request, null, logger));
+    }
+
+    @Test
+    public void handleRequest_andTaggingExceptionMessage_thenThrowCfnUnauthorizedTaggingOperationException() {
+        final CreateHandler handler = new CreateHandler(customerProfilesClient);
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(model)
+                .build();
+
+        AccessDeniedException exception = Mockito.mock(AccessDeniedException.class);
+        Mockito.when(exception.getMessage()).thenReturn("is not authorized to perform profile:TagResource");
+
+        Mockito.when(proxy.injectCredentialsAndInvokeV2(any(), any()))
+                .thenThrow(exception);
+
+        assertThrows(CfnUnauthorizedTaggingOperationException.class, () -> handler.handleRequest(proxy, request, null, logger));
     }
 }

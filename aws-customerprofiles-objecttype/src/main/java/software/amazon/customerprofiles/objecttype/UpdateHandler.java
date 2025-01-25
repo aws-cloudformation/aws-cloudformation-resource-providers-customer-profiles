@@ -80,7 +80,11 @@ public class UpdateHandler extends BaseHandler<CallbackContext> {
                         .resourceArn(Translator.toProfileObjectTypeARN(request))
                         .tagKeys(tagsToRemove)
                         .build();
-                proxy.injectCredentialsAndInvokeV2(untagResourceRequest, client::untagResource);
+                try {
+                    proxy.injectCredentialsAndInvokeV2(untagResourceRequest, client::untagResource);
+                } catch (Exception e) {
+                    throw Translator.translateToCfnException(e);
+                }
             }
         }
 
@@ -90,7 +94,11 @@ public class UpdateHandler extends BaseHandler<CallbackContext> {
                     .resourceArn(software.amazon.customerprofiles.objecttype.Translator.toProfileObjectTypeARN(request))
                     .tags(resourceTag)
                     .build();
-            proxy.injectCredentialsAndInvokeV2(tagResourceRequest, client::tagResource);
+            try {
+                proxy.injectCredentialsAndInvokeV2(tagResourceRequest, client::tagResource);
+            } catch (Exception e) {
+                throw Translator.translateToCfnException(e);
+            }
         }
         final PutProfileObjectTypeRequest putProfileObjectTypeRequest = PutProfileObjectTypeRequest.builder()
                 .domainName(model.getDomainName())
@@ -117,7 +125,7 @@ public class UpdateHandler extends BaseHandler<CallbackContext> {
         } catch (InternalServerException e) {
             throw new CfnServiceInternalErrorException(e);
         } catch (Exception e) {
-            throw new CfnGeneralServiceException(e);
+            throw Translator.translateToCfnException(e);
         }
 
         final ResourceModel responseModel = getResourceModel(model, putProfileObjectTypeResponse);

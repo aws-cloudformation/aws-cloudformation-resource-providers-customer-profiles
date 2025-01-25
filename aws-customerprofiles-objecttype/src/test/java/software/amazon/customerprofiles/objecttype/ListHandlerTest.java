@@ -45,7 +45,7 @@ public class ListHandlerTest {
     private static final String OBJECT_TYPE_NAME_1 = "testObjectTypeName1";
     private static final String OBJECT_TYPE_NAME_2 = "testObjectTypeName2";
 
-    private static ResourceModel model;
+    private ResourceModel model;
 
     @Mock
     private AmazonWebServicesClientProxy proxy;

@@ -1,6 +1,8 @@
 package software.amazon.customerprofiles.integration;
 
 import com.google.common.collect.ImmutableMap;
+
+import java.util.List;
 import java.util.stream.Stream;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -17,7 +19,6 @@ import software.amazon.awssdk.services.customerprofiles.model.ResourceNotFoundEx
 import software.amazon.awssdk.services.customerprofiles.model.ThrottlingException;
 import software.amazon.cloudformation.exceptions.CfnAccessDeniedException;
 import software.amazon.cloudformation.exceptions.CfnAlreadyExistsException;
-import software.amazon.cloudformation.exceptions.CfnGeneralServiceException;
 import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
 import software.amazon.cloudformation.exceptions.CfnNotFoundException;
 import software.amazon.cloudformation.exceptions.CfnServiceInternalErrorException;
@@ -46,8 +47,11 @@ public class CreateHandlerTest {
     private static final Instant TIME = Instant.now();
     private static final Map<String, String> DESIRED_TAGS = ImmutableMap.of("Key2", "Value4", "Key3", "Value3");
     private static final Map<String, String> OBJECT_TYPE_NAMES = ImmutableMap.of("TestEventType", "TestObjectType");
+    private static final String DOMAIN_NAME = "DomainName";
+    private static final String EVENT_TRIGGER_NAME = "EventTriggerName";
+    private static final String CONNECT_CAMPAIGN_ARN = "arn:aws:connect-campaigns:us-west-2:123456789012:campaign/UUID";
 
-    private static ResourceModel model;
+    private ResourceModel model;
 
     @Mock
     private AmazonWebServicesClientProxy proxy;
@@ -180,6 +184,44 @@ public class CreateHandlerTest {
         assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
         assertThat(response.getResourceModel().getDomainName()).isEqualTo(request.getDesiredResourceState().getDomainName());
         assertThat(response.getResourceModel().getObjectTypeNames()).isEqualTo(request.getDesiredResourceState().getObjectTypeNames());
+        assertThat(response.getResourceModels()).isNull();
+        assertThat(response.getMessage()).isNull();
+        assertThat(response.getErrorCode()).isNull();
+    }
+
+    @Test
+    public void handleRequest_withEventTriggerNames_Success() {
+        model = ResourceModel.builder()
+                .domainName(DOMAIN_NAME)
+                .uri(CONNECT_CAMPAIGN_ARN)
+                .eventTriggerNames(List.of(EVENT_TRIGGER_NAME))
+                .build();
+
+        final CreateHandler handler = new CreateHandler(customerProfilesClient);
+
+        PutIntegrationResponse result = PutIntegrationResponse.builder()
+                .domainName(DOMAIN_NAME)
+                .uri(CONNECT_CAMPAIGN_ARN)
+                .eventTriggerNames(List.of(EVENT_TRIGGER_NAME))
+                .createdAt(TIME)
+                .lastUpdatedAt(TIME)
+                .build();
+
+        Mockito.doReturn(result).when(proxy).injectCredentialsAndInvokeV2(any(PutIntegrationRequest.class), any());
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(model)
+                .build();
+
+        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, null, logger);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+        assertThat(response.getCallbackContext()).isNull();
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
+        assertThat(response.getResourceModel().getDomainName()).isEqualTo(request.getDesiredResourceState().getDomainName());
+        assertThat(response.getResourceModel().getUri()).isEqualTo(request.getDesiredResourceState().getUri());
+        assertThat(response.getResourceModel().getEventTriggerNames()).isEqualTo(request.getDesiredResourceState().getEventTriggerNames());
         assertThat(response.getResourceModels()).isNull();
         assertThat(response.getMessage()).isNull();
         assertThat(response.getErrorCode()).isNull();
@@ -364,7 +406,8 @@ public class CreateHandlerTest {
     public void handleRequest_PutIntegration_otherException() {
         final CreateHandler handler = new CreateHandler(customerProfilesClient);
 
-        RuntimeException exc = new RuntimeException();
+        ThrottlingException exc = Mockito.mock(ThrottlingException.class);
+        Mockito.when(exc.getMessage()).thenReturn("throttling");
 
         Mockito.doThrow(exc).when(proxy).injectCredentialsAndInvokeV2(
                 any(GetIntegrationRequest.class), any());
@@ -376,7 +419,7 @@ public class CreateHandlerTest {
                 .desiredResourceState(model)
                 .build();
 
-        assertThrows(CfnGeneralServiceException.class, () -> handler.handleRequest(proxy, request, null, logger));
+        assertThrows(CfnThrottlingException.class, () -> handler.handleRequest(proxy, request, null, logger));
     }
 
     @Test

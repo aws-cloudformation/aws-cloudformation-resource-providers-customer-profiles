@@ -56,7 +56,7 @@ public class DeleteHandler extends BaseHandler<CallbackContext> {
         } catch (ResourceNotFoundException e) {
             throw new CfnNotFoundException(e);
         } catch (Exception e) {
-            throw new CfnGeneralServiceException(e);
+            throw Translator.translateToCfnException(e);
         }
 
         return ProgressEvent.<ResourceModel, CallbackContext>builder()

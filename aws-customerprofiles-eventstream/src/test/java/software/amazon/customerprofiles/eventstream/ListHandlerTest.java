@@ -4,9 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 
-import java.time.Instant;
-
 import com.google.common.collect.Lists;
+import java.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -43,7 +42,7 @@ public class ListHandlerTest {
     private static final String EVENT_STREAM_ARN_1 = "arn:aws:profiles:us-east-1:123456789012:domains/domainName/event-stream/eventStreamName1";
     private static final String EVENT_STREAM_ARN_2 = "arn:aws:profiles:us-east-1:123456789012:domains/domainName/event-stream/eventStreamName2";
     private static final String KINESIS_DATA_STREAM_ARN = "arn:aws:kinesis:us-east-1:123456789012:stream/testStream";
-    private static ResourceModel model;
+    private ResourceModel model;
     @Mock
     private AmazonWebServicesClientProxy proxy;
     @Mock

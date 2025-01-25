@@ -1,6 +1,13 @@
 package software.amazon.customerprofiles.calculatedattributedefinition;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+
 import com.google.common.collect.ImmutableMap;
+import java.time.Instant;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -8,6 +15,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import software.amazon.awssdk.services.customerprofiles.CustomerProfilesClient;
+import software.amazon.awssdk.services.customerprofiles.model.AccessDeniedException;
 import software.amazon.awssdk.services.customerprofiles.model.AttributeDetails;
 import software.amazon.awssdk.services.customerprofiles.model.AttributeItem;
 import software.amazon.awssdk.services.customerprofiles.model.BadRequestException;
@@ -28,18 +36,12 @@ import software.amazon.cloudformation.exceptions.CfnGeneralServiceException;
 import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
 import software.amazon.cloudformation.exceptions.CfnNotFoundException;
 import software.amazon.cloudformation.exceptions.CfnServiceInternalErrorException;
+import software.amazon.cloudformation.exceptions.CfnUnauthorizedTaggingOperationException;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
-
-import java.time.Instant;
-import java.util.Map;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
 
 @ExtendWith(MockitoExtension.class)
 public class UpdateHandlerTest {
@@ -61,8 +63,8 @@ public class UpdateHandlerTest {
     @Mock
     private Logger logger;
 
-    private static ResourceModel model;
-    private static Conditions conditions;
+    private ResourceModel model;
+    private Conditions conditions;
 
     @BeforeEach
     public void setup() {
@@ -142,7 +144,7 @@ public class UpdateHandlerTest {
         Mockito.doReturn(TagResourceResponse.builder().build()).when(proxy).injectCredentialsAndInvokeV2(any(TagResourceRequest.class), any());
 
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, null, logger);
-        Mockito.verify(proxy, Mockito.times(0)).injectCredentialsAndInvokeV2(any(UntagResourceRequest.class), any());
+        Mockito.verify(proxy, times(0)).injectCredentialsAndInvokeV2(any(UntagResourceRequest.class), any());
         Mockito.verify(proxy).injectCredentialsAndInvokeV2(any(TagResourceRequest.class), any());
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
@@ -173,7 +175,7 @@ public class UpdateHandlerTest {
         Mockito.doReturn(TagResourceResponse.builder().build()).when(proxy).injectCredentialsAndInvokeV2(any(TagResourceRequest.class), any());
 
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, null, logger);
-        Mockito.verify(proxy, Mockito.times(0)).injectCredentialsAndInvokeV2(any(UntagResourceRequest.class), any());
+        Mockito.verify(proxy, times(0)).injectCredentialsAndInvokeV2(any(UntagResourceRequest.class), any());
         Mockito.verify(proxy).injectCredentialsAndInvokeV2(any(TagResourceRequest.class), any());
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
@@ -204,7 +206,7 @@ public class UpdateHandlerTest {
 
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, null, logger);
         Mockito.verify(proxy).injectCredentialsAndInvokeV2(any(UntagResourceRequest.class), any());
-        Mockito.verify(proxy, Mockito.times(0)).injectCredentialsAndInvokeV2(any(TagResourceRequest.class), any());
+        Mockito.verify(proxy, times(0)).injectCredentialsAndInvokeV2(any(TagResourceRequest.class), any());
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
         assertThat(response.getCallbackContext()).isNull();
@@ -235,7 +237,7 @@ public class UpdateHandlerTest {
 
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, null, logger);
         Mockito.verify(proxy).injectCredentialsAndInvokeV2(any(UntagResourceRequest.class), any());
-        Mockito.verify(proxy, Mockito.times(0)).injectCredentialsAndInvokeV2(any(TagResourceRequest.class), any());
+        Mockito.verify(proxy, times(0)).injectCredentialsAndInvokeV2(any(TagResourceRequest.class), any());
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
         assertThat(response.getCallbackContext()).isNull();
@@ -348,14 +350,83 @@ public class UpdateHandlerTest {
         final UpdateHandler handler = new UpdateHandler();
         Mockito.doReturn(GetCalculatedAttributeDefinitionResponse.builder().build()).when(proxy).injectCredentialsAndInvokeV2(
                 any(GetCalculatedAttributeDefinitionRequest.class), any());
-        ThrottlingException exception = ThrottlingException.builder().build();
+        ThrottlingException exception = Mockito.mock(ThrottlingException.class);
+        Mockito.when(exception.getMessage()).thenReturn("throttling");
+        Mockito.doThrow(exception).when(proxy).injectCredentialsAndInvokeV2(
+                any(UntagResourceRequest.class), any());
+        Mockito.verify(proxy, times(0)).injectCredentialsAndInvokeV2(
+                any(TagResourceRequest.class), any());
+        Mockito.verify(proxy, times(0)).injectCredentialsAndInvokeV2(
+                any(UpdateCalculatedAttributeDefinitionRequest.class), any());
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(model)
+                .previousResourceTags(PREVIOUS_TAGS)
+                .desiredResourceTags(DESIRED_TAGS)
+                .build();
+
+        assertThrows(CfnGeneralServiceException.class, () -> handler.handleRequest(proxy, request, null, logger));
+    }
+
+    @Test
+    public void handleRequest_andTagSupportDeniedForUnTag_thenThrowCfnUnauthorizedTaggingOperationException() {
+        final UpdateHandler handler = new UpdateHandler();
+        Mockito.doReturn(GetCalculatedAttributeDefinitionResponse.builder().build()).when(proxy).injectCredentialsAndInvokeV2(
+                any(GetCalculatedAttributeDefinitionRequest.class), any());
+        AccessDeniedException exception = Mockito.mock(AccessDeniedException.class);
+        Mockito.when(exception.getMessage()).thenReturn("is not authorized to perform profile:UntagResource");
+        Mockito.doThrow(exception).when(proxy).injectCredentialsAndInvokeV2(
+                any(UntagResourceRequest.class), any());
+        Mockito.verify(proxy, times(0)).injectCredentialsAndInvokeV2(
+                any(TagResourceRequest.class), any());
+        Mockito.verify(proxy, times(0)).injectCredentialsAndInvokeV2(
+                any(UpdateCalculatedAttributeDefinitionRequest.class), any());
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(model)
+                .previousResourceTags(PREVIOUS_TAGS)
+                .build();
+
+        assertThrows(CfnUnauthorizedTaggingOperationException.class, () -> handler.handleRequest(proxy, request, null, logger));
+    }
+
+    @Test
+    public void handleRequest_andTagSupportDeniedForTag_thenThrowCfnUnauthorizedTaggingOperationException() {
+        final UpdateHandler handler = new UpdateHandler();
+        Mockito.doReturn(GetCalculatedAttributeDefinitionResponse.builder().build()).when(proxy).injectCredentialsAndInvokeV2(
+                any(GetCalculatedAttributeDefinitionRequest.class), any());
+        AccessDeniedException exception = Mockito.mock(AccessDeniedException.class);
+        Mockito.when(exception.getMessage()).thenReturn("is not authorized to perform profile:TagResource");
+        Mockito.doThrow(exception).when(proxy).injectCredentialsAndInvokeV2(
+                any(TagResourceRequest.class), any());
+        Mockito.verify(proxy, times(0)).injectCredentialsAndInvokeV2(
+                any(UntagResourceRequest.class), any());
+        Mockito.verify(proxy, times(0)).injectCredentialsAndInvokeV2(
+                any(UpdateCalculatedAttributeDefinitionRequest.class), any());
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(model)
+                .desiredResourceTags(DESIRED_TAGS)
+                .build();
+
+        assertThrows(CfnUnauthorizedTaggingOperationException.class, () -> handler.handleRequest(proxy, request, null, logger));
+    }
+
+    @Test
+    public void handleRequest_andTagSupportDeniedForUpdateCad_thenThrowCfnUnauthorizedTaggingOperationException() {
+        final UpdateHandler handler = new UpdateHandler();
+        Mockito.doReturn(GetCalculatedAttributeDefinitionResponse.builder().build()).when(proxy).injectCredentialsAndInvokeV2(
+                any(GetCalculatedAttributeDefinitionRequest.class), any());
+        AccessDeniedException exception = Mockito.mock(AccessDeniedException.class);
+        Mockito.when(exception.getMessage()).thenReturn("is not authorized to perform profile:ListTagsForResource");
         Mockito.doThrow(exception).when(proxy).injectCredentialsAndInvokeV2(
                 any(UpdateCalculatedAttributeDefinitionRequest.class), any());
+        Mockito.verify(proxy, times(0)).injectCredentialsAndInvokeV2(
+                any(UntagResourceRequest.class), any());
+        Mockito.verify(proxy, times(0)).injectCredentialsAndInvokeV2(
+                any(TagResourceRequest.class), any());
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
                 .desiredResourceState(model)
                 .build();
 
-        assertThrows(CfnGeneralServiceException.class, () -> handler.handleRequest(proxy, request, null, logger));
+        assertThrows(CfnUnauthorizedTaggingOperationException.class, () -> handler.handleRequest(proxy, request, null, logger));
     }
 
     private UpdateCalculatedAttributeDefinitionResponse buildUpdateDefinitionResponse(Map<String, String> tags) {

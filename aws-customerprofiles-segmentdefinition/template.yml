@@ -1,0 +1,23 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: AWS SAM template for the AWS::CustomerProfiles::SegmentDefinition resource type
+
+Globals:
+  Function:
+    Timeout: 180  # docker start-up times can be long for SAM CLI
+    MemorySize: 256
+
+Resources:
+  TypeFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: software.amazon.customerprofiles.segmentdefinition.HandlerWrapper::handleRequest
+      Runtime: java17
+      CodeUri: ./target/aws-customerprofiles-segmentdefinition-1.0.jar
+
+  TestEntrypoint:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: software.amazon.customerprofiles.segmentdefinition.HandlerWrapper::testEntrypoint
+      Runtime: java17
+      CodeUri: ./target/aws-customerprofiles-segmentdefinition-1.0.jar

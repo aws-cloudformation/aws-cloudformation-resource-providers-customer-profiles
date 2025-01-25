@@ -80,7 +80,11 @@ public class UpdateHandler extends BaseHandler<CallbackContext> {
                         .resourceArn(Translator.toIntegrationArn(request))
                         .tagKeys(tagsToRemove)
                         .build();
-                proxy.injectCredentialsAndInvokeV2(untagResourceRequest, client::untagResource);
+                try {
+                    proxy.injectCredentialsAndInvokeV2(untagResourceRequest, client::untagResource);
+                } catch (Exception e) {
+                    throw Translator.translateToCfnException(e);
+                }
             }
         }
 
@@ -90,7 +94,11 @@ public class UpdateHandler extends BaseHandler<CallbackContext> {
                     .resourceArn(software.amazon.customerprofiles.integration.Translator.toIntegrationArn(request))
                     .tags(resourceTag)
                     .build();
-            proxy.injectCredentialsAndInvokeV2(tagResourceRequest, client::tagResource);
+            try {
+                proxy.injectCredentialsAndInvokeV2(tagResourceRequest, client::tagResource);
+            } catch (Exception e) {
+                throw Translator.translateToCfnException(e);
+            }
         }
         final PutIntegrationRequest putIntegrationRequest = PutIntegrationRequest.builder()
                 .domainName(requestModel.getDomainName())
@@ -98,6 +106,7 @@ public class UpdateHandler extends BaseHandler<CallbackContext> {
                 .objectTypeName(requestModel.getObjectTypeName())
                 .uri(requestModel.getUri())
                 .objectTypeNames(Translator.mapListToObjectTypeNames(requestModel.getObjectTypeNames()))
+                .eventTriggerNames(Translator.getValidEventTriggerNames(requestModel.getEventTriggerNames()))
                 .build();
 
         final PutIntegrationResponse putIntegrationResponse;
@@ -112,7 +121,7 @@ public class UpdateHandler extends BaseHandler<CallbackContext> {
         } catch (ResourceNotFoundException e) {
             throw new CfnNotFoundException(e);
         } catch (Exception e) {
-            throw new CfnGeneralServiceException(e);
+            throw Translator.translateToCfnException(e);
         }
 
         final ResourceModel responseModel = ResourceModel.builder()
@@ -123,6 +132,7 @@ public class UpdateHandler extends BaseHandler<CallbackContext> {
                 .tags(Translator.mapTagsToList(putIntegrationResponse.tags()))
                 .uri(putIntegrationResponse.uri())
                 .objectTypeNames(Translator.mapObjectTypeNamesToList(putIntegrationResponse.objectTypeNames()))
+                .eventTriggerNames(Translator.getValidEventTriggerNames(putIntegrationResponse.eventTriggerNames()))
                 .build();
 
         return ProgressEvent.defaultSuccessHandler(responseModel);

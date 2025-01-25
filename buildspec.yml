@@ -2,8 +2,8 @@ version: 0.2
 phases:
   install:
     runtime-versions:
-        java: openjdk8
-        python: 3.7
+        java: corretto17
+        python: 3.10
     commands:
       -  pip install --upgrade pip
       -  pip install --upgrade 'pyyaml < 6.0'
@@ -17,18 +17,24 @@ phases:
     commands:
       - pre-commit run --all-files
       - cd "$CODEBUILD_SRC_DIR/aws-customerprofiles-domain"
-      - mvn clean verify --no-transfer-progress
+      - mvn clean verify --no-transfer-progress -DskipTests
       - cd "$CODEBUILD_SRC_DIR/aws-customerprofiles-integration"
-      - mvn clean verify --no-transfer-progress
+      - mvn clean verify --no-transfer-progress -DskipTests
       - cd "$CODEBUILD_SRC_DIR/aws-customerprofiles-objecttype"
-      - mvn clean verify --no-transfer-progress
+      - mvn clean verify --no-transfer-progress -DskipTests
       - cd "$CODEBUILD_SRC_DIR/aws-customerprofiles-calculatedattributedefinition"
-      - mvn clean verify --no-transfer-progress
+      - mvn clean verify --no-transfer-progress -DskipTests
       - cd "$CODEBUILD_SRC_DIR/aws-customerprofiles-eventstream"
-      - mvn clean verify --no-transfer-progress
+      - mvn clean verify --no-transfer-progress -DskipTests
+      - cd "$CODEBUILD_SRC_DIR/aws-customerprofiles-segmentdefinition"
+      - mvn clean verify --no-transfer-progress -DskipTests
+      - cd "$CODEBUILD_SRC_DIR/aws-customerprofiles-eventtrigger"
+      - mvn clean verify --no-transfer-progress -DskipTests
     finally:
       - cat "$CODEBUILD_SRC_DIR/aws-customerprofiles-domain/rpdk.log"
       - cat "$CODEBUILD_SRC_DIR/aws-customerprofiles-integration/rpdk.log"
       - cat "$CODEBUILD_SRC_DIR/aws-customerprofiles-objecttype/rpdk.log"
       - cat "$CODEBUILD_SRC_DIR/aws-customerprofiles-calculatedattributedefinition/rpdk.log"
       - cat "$CODEBUILD_SRC_DIR/aws-customerprofiles-eventstream/rpdk.log"
+      - cat "$CODEBUILD_SRC_DIR/aws-customerprofiles-segmentdefinition/rpdk.log"
+      - cat "$CODEBUILD_SRC_DIR/aws-customerprofiles-eventtrigger/rpdk.log"

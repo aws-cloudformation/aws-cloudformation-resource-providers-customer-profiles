@@ -110,6 +110,7 @@ public class CreateHandler extends BaseHandler<CallbackContext> {
                 .flowDefinition(buildServiceFlowDefinition(model.getFlowDefinition()))
                 .uri(model.getUri())
                 .objectTypeNames(Translator.mapListToObjectTypeNames(model.getObjectTypeNames()))
+                .eventTriggerNames(Translator.getValidEventTriggerNames(model.getEventTriggerNames()))
                 .build();
 
         final PutIntegrationResponse putIntegrationResponse;
@@ -135,7 +136,7 @@ public class CreateHandler extends BaseHandler<CallbackContext> {
         } catch (ResourceNotFoundException e) {
             throw new CfnNotFoundException(e);
         } catch (Exception e) {
-            throw new CfnGeneralServiceException(e);
+            throw Translator.translateToCfnException(e);
         }
 
         final ResourceModel responseModel = ResourceModel.builder()
@@ -146,6 +147,7 @@ public class CreateHandler extends BaseHandler<CallbackContext> {
                 .tags(Translator.mapTagsToList(putIntegrationResponse.tags()))
                 .uri(putIntegrationResponse.uri())
                 .objectTypeNames(Translator.mapObjectTypeNamesToList(putIntegrationResponse.objectTypeNames()))
+                .eventTriggerNames(Translator.getValidEventTriggerNames(putIntegrationResponse.eventTriggerNames()))
                 .build();
 
         return ProgressEvent.defaultSuccessHandler(responseModel);

@@ -3,8 +3,11 @@ package software.amazon.customerprofiles.domain;
 import static software.amazon.customerprofiles.domain.Translator.buildServiceMatching;
 import static software.amazon.customerprofiles.domain.Translator.buildServiceRuleBasedMatching;
 import static software.amazon.customerprofiles.domain.Translator.mapTagsToList;
+import static software.amazon.customerprofiles.domain.Translator.translateToCfnException;
 import static software.amazon.customerprofiles.domain.Translator.translateToInternalMatchingResponse;
 import static software.amazon.customerprofiles.domain.Translator.translateToInternalRuleBasedMatchingResponse;
+
+import java.util.Map;
 
 import lombok.NoArgsConstructor;
 import software.amazon.awssdk.services.customerprofiles.CustomerProfilesClient;
@@ -14,7 +17,6 @@ import software.amazon.awssdk.services.customerprofiles.model.CreateDomainRespon
 import software.amazon.awssdk.services.customerprofiles.model.InternalServerException;
 import software.amazon.awssdk.services.customerprofiles.model.ResourceNotFoundException;
 import software.amazon.cloudformation.exceptions.CfnAlreadyExistsException;
-import software.amazon.cloudformation.exceptions.CfnGeneralServiceException;
 import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
 import software.amazon.cloudformation.exceptions.CfnNotFoundException;
 import software.amazon.cloudformation.exceptions.CfnServiceInternalErrorException;
@@ -22,8 +24,6 @@ import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
-
-import java.util.Map;
 
 @NoArgsConstructor
 public class CreateHandler extends BaseHandler<CallbackContext> {
@@ -80,7 +80,7 @@ public class CreateHandler extends BaseHandler<CallbackContext> {
         } catch (ResourceNotFoundException e) {
             throw new CfnNotFoundException(e);
         } catch (Exception e) {
-            throw new CfnGeneralServiceException(e);
+            throw translateToCfnException(e);
         }
 
         final ResourceModel responseModel = ResourceModel.builder()

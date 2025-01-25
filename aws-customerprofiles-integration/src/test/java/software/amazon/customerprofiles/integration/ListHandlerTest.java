@@ -41,7 +41,7 @@ public class ListHandlerTest {
     private static final Map<String, String> OBJECT_TYPE_NAMES_1 = ImmutableMap.of("TestEventType1", "TestObjectType1");
     private static final Map<String, String> OBJECT_TYPE_NAMES_2 = ImmutableMap.of("TestEventType2", "TestObjectType2");
 
-    private static ResourceModel model;
+    private ResourceModel model;
 
     @Mock
     private AmazonWebServicesClientProxy proxy;

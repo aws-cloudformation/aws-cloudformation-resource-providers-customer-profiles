@@ -25,6 +25,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -35,8 +36,11 @@ import static org.mockito.ArgumentMatchers.any;
 public class ReadHandlerTest {
     private static final Instant TIME = Instant.now();
     private static final Map<String, String> OBJECT_TYPE_NAMES = ImmutableMap.of("TestEventType", "TestObjectType");
+    private static final String DOMAIN_NAME = "DomainName";
+    private static final String EVENT_TRIGGER_NAME = "EventTriggerName";
+    private static final String CONNECT_CAMPAIGN_ARN = "arn:aws:connect-campaigns:us-west-2:123456789012:campaign/UUID";
 
-    private static ResourceModel model;
+    private ResourceModel model;
 
     @Mock
     private AmazonWebServicesClientProxy proxy;
@@ -123,6 +127,44 @@ public class ReadHandlerTest {
         assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
         assertThat(response.getResourceModel().getDomainName()).isEqualTo(request.getDesiredResourceState().getDomainName());
         assertThat(response.getResourceModel().getObjectTypeNames()).isEqualTo(Translator.mapObjectTypeNamesToList(OBJECT_TYPE_NAMES));
+        assertThat(response.getResourceModels()).isNull();
+        assertThat(response.getMessage()).isNull();
+        assertThat(response.getErrorCode()).isNull();
+    }
+
+    @Test
+    public void handleRequest_withEventTriggerNames_SimpleSuccess() {
+        model = ResourceModel.builder()
+                .domainName(DOMAIN_NAME)
+                .uri(CONNECT_CAMPAIGN_ARN)
+                .eventTriggerNames(List.of(EVENT_TRIGGER_NAME))
+                .build();
+
+        final ReadHandler handler = new ReadHandler(customerProfilesClient);
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(model)
+                .build();
+
+        final GetIntegrationResponse result = GetIntegrationResponse.builder()
+                .domainName(DOMAIN_NAME)
+                .uri(CONNECT_CAMPAIGN_ARN)
+                .eventTriggerNames(List.of(EVENT_TRIGGER_NAME))
+                .createdAt(TIME)
+                .lastUpdatedAt(TIME)
+                .build();
+
+        Mockito.when(proxy.injectCredentialsAndInvokeV2(any(), any())).thenReturn(result);
+
+        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, null, logger);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+        assertThat(response.getCallbackContext()).isNull();
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
+        assertThat(response.getResourceModel().getDomainName()).isEqualTo(request.getDesiredResourceState().getDomainName());
+        assertThat(response.getResourceModel().getUri()).isEqualTo(request.getDesiredResourceState().getUri());
+        assertThat(response.getResourceModel().getEventTriggerNames()).isEqualTo(request.getDesiredResourceState().getEventTriggerNames());
         assertThat(response.getResourceModels()).isNull();
         assertThat(response.getMessage()).isNull();
         assertThat(response.getErrorCode()).isNull();

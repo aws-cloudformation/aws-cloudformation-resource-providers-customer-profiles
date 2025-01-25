@@ -3,6 +3,7 @@ package software.amazon.customerprofiles.integration;
 import org.mockito.Mockito;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.services.customerprofiles.CustomerProfilesClient;
+import software.amazon.awssdk.services.customerprofiles.model.AccessDeniedException;
 import software.amazon.awssdk.services.customerprofiles.model.BadRequestException;
 import software.amazon.awssdk.services.customerprofiles.model.DeleteIntegrationResponse;
 import software.amazon.awssdk.services.customerprofiles.model.InternalServerException;
@@ -12,6 +13,7 @@ import software.amazon.cloudformation.exceptions.CfnGeneralServiceException;
 import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
 import software.amazon.cloudformation.exceptions.CfnNotFoundException;
 import software.amazon.cloudformation.exceptions.CfnServiceInternalErrorException;
+import software.amazon.cloudformation.exceptions.CfnUnauthorizedTaggingOperationException;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.OperationStatus;
@@ -31,7 +33,7 @@ import static org.mockito.ArgumentMatchers.any;
 public class DeleteHandlerTest {
     private static final String DELETE_MESSAGE = "Deleted";
 
-    private static ResourceModel model;
+    private ResourceModel model;
 
     @Mock
     private AmazonWebServicesClientProxy proxy;
@@ -134,9 +136,8 @@ public class DeleteHandlerTest {
     public void handleRequest_otherException() {
         final DeleteHandler handler = new DeleteHandler(customerProfilesClient);
 
-        ThrottlingException exc = ThrottlingException.builder()
-                .message("ThrottlingException")
-                .build();
+        ThrottlingException exc = Mockito.mock(ThrottlingException.class);
+        Mockito.when(exc.getMessage()).thenReturn("throttling");
 
         Mockito.doThrow(exc).when(proxy).injectCredentialsAndInvokeV2(any(), any());
 
@@ -145,5 +146,21 @@ public class DeleteHandlerTest {
                 .build();
 
         assertThrows(CfnGeneralServiceException.class, () -> handler.handleRequest(proxy, request, null, logger));
+    }
+
+    @Test
+    public void handleRequest_andTaggingExceptionMessage_thenThrowCfnUnauthorizedTaggingOperationException() {
+        final DeleteHandler handler = new DeleteHandler(customerProfilesClient);
+
+        AccessDeniedException exc = Mockito.mock(AccessDeniedException.class);
+        Mockito.when(exc.getMessage()).thenReturn("is not authorized to perform profile:TagResource");
+
+        Mockito.doThrow(exc).when(proxy).injectCredentialsAndInvokeV2(any(), any());
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(model)
+                .build();
+
+        assertThrows(CfnUnauthorizedTaggingOperationException.class, () -> handler.handleRequest(proxy, request, null, logger));
     }
 }

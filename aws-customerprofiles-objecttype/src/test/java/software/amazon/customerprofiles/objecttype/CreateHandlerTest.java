@@ -5,6 +5,7 @@ import com.google.common.collect.Lists;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import software.amazon.awssdk.services.customerprofiles.CustomerProfilesClient;
+import software.amazon.awssdk.services.customerprofiles.model.AccessDeniedException;
 import software.amazon.awssdk.services.customerprofiles.model.BadRequestException;
 import software.amazon.awssdk.services.customerprofiles.model.GetProfileObjectTypeRequest;
 import software.amazon.awssdk.services.customerprofiles.model.GetProfileObjectTypeResponse;
@@ -21,6 +22,7 @@ import software.amazon.cloudformation.exceptions.CfnGeneralServiceException;
 import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
 import software.amazon.cloudformation.exceptions.CfnNotFoundException;
 import software.amazon.cloudformation.exceptions.CfnServiceInternalErrorException;
+import software.amazon.cloudformation.exceptions.CfnUnauthorizedTaggingOperationException;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.OperationStatus;
@@ -70,7 +72,7 @@ public class CreateHandlerTest {
     private static final String SOURCE_LAST_UPDATED_TIMESTAMP_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSX";
     private static final Map<String, String> DESIRED_TAGS = ImmutableMap.of("Key2", "Value4", "Key3", "Value3");
 
-    private static ResourceModel model;
+    private ResourceModel model;
 
     @Mock
     private AmazonWebServicesClientProxy proxy;
@@ -326,6 +328,7 @@ public class CreateHandlerTest {
         assertThat(response.getResourceModel().getTemplateId()).isEqualTo(TEMPLATE_ID);
         assertThat(response.getResourceModel().getExpirationDays()).isEqualTo(EXPIRATION_DAYS);
         assertThat(response.getResourceModel().getTags()).isNull();
+
         assertThat(response.getResourceModels()).isNull();
         assertThat(response.getMessage()).isNull();
         assertThat(response.getErrorCode()).isNull();
@@ -426,9 +429,8 @@ public class CreateHandlerTest {
     public void handleRequest_otherException() {
         final CreateHandler handler = new CreateHandler();
 
-        ThrottlingException exc = ThrottlingException.builder()
-                .message("ThrottlingException")
-                .build();
+        ThrottlingException exc = Mockito.mock(ThrottlingException.class);
+        Mockito.when(exc.getMessage()).thenReturn("throttling");
 
         Mockito.doThrow(exc).when(proxy).injectCredentialsAndInvokeV2(
                 any(GetProfileObjectTypeRequest.class), any());
@@ -441,5 +443,25 @@ public class CreateHandlerTest {
                 .build();
 
         assertThrows(CfnGeneralServiceException.class, () -> handler.handleRequest(proxy, request, null, logger));
+    }
+
+    @Test
+    public void handleRequest_andTaggingExceptionMessage_thenThrowCfnUnauthorizedTaggingOperationException() {
+        final CreateHandler handler = new CreateHandler();
+
+        AccessDeniedException exception = Mockito.mock(AccessDeniedException.class);
+        Mockito.when(exception.getMessage()).thenReturn("is not authorized to perform profile:TagResource");
+
+        Mockito.doThrow(exception).when(proxy).injectCredentialsAndInvokeV2(
+                any(GetProfileObjectTypeRequest.class), any());
+
+        Mockito.doThrow(exception).when(proxy).injectCredentialsAndInvokeV2(
+                any(PutProfileObjectTypeRequest.class), any());
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(model)
+                .build();
+
+        assertThrows(CfnUnauthorizedTaggingOperationException.class, () -> handler.handleRequest(proxy, request, null, logger));
     }
 }
